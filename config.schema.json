@@ -1,0 +1,53 @@
+{
+    "pluginAlias": "RandomDelaySwitches",
+    "pluginType": "platform",
+    "headerDisplay": "Delay switch platform for Homebridge, with or without a random delay",
+    "footerDisplay": "For more information see the [README](https://github.com/kernie66/homebridge-delay-switches#readme)",
+    "singular": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "title": "Accessory Name",
+                "type": "string",
+                "required": true,
+                "description": "Name of the switch. The motion sensor name will be appended with 'Trigger'."
+            },
+            "delay": {
+                "title": "Delay Time in Seconds",
+                "type": "integer",
+                "required": true,
+                "default": 60,
+                "minimum": 1,
+                "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)"
+            },
+            "minDelay": {
+                "title": "Minimum Delay",
+                "type": "integer",
+                "default": 1,
+                "description": "The minimum value for a random delay in seconds (set to less than the delay)"
+            },
+            "random": {
+                "title": "Random Delay",
+                "type": "boolean",
+                "default": false,
+                "description": "The delay will be a random value from the minimum delay to the delay value above."
+            },
+            "disableSensor": {
+                "title": "Disable Sensor",
+                "type": "boolean",
+                "default": false,
+                "description": "The motion sensor will be disabled."
+            },
+            "startOnReboot": {
+                "title": "Turn ON when HomeBridge Restarts",
+                "description": "When Enabled, the switch will be turned ON and start the timer when HomeBridge server restarts",
+                "type": "boolean",
+                "default": false,
+                "required": false
+            }
+
+        }
+    }
+}
+

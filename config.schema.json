@@ -45,35 +45,37 @@
             },
             "minDelay": 
             {
-                "title": "Minimum Delay",
-                "type": "integer",
-                "default": 1,
-                "minimum": 1,
-                "description": "The minimum value for a random delay in seconds (set to less than the delay)"
+              "title": "Minimum Delay",
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "description": "The minimum value for a random delay in seconds (set to less than the delay)"
             },
             "random": 
             {
-                "title": "Random Delay",
-                "type": "boolean",
-                "default": false,
-                "description": "The delay will be a random value from the minimum delay to the delay value above."
+              "title": "Random Delay",
+              "type": "boolean",
+              "default": false,
+              "description": "The delay will be a random value from the minimum delay to the delay value above."
             },
             "disableSensor": 
             {
-                "title": "Disable Sensor",
-                "type": "boolean",
-                "default": false,
-                "description": "The motion sensor will be disabled."
+              "title": "Disable Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "The motion sensor will be disabled."
             },
             "startOnReboot": 
             {
-                "title": "Turn ON when HomeBridge Restarts",
-                "description": "When Enabled, the switch will be turned ON and start the timer when HomeBridge server restarts",
-                "type": "boolean",
-                "default": false,
-                "required": false
+              "title": "Turn ON when HomeBridge Restarts",
+              "description": "When Enabled, the switch will be turned ON and start the timer when HomeBridge server restarts",
+              "type": "boolean",
+              "default": false,
+              "required": false
             }
+          }
         }
+      }
     }
+  }
 }
-

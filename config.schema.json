@@ -1,30 +1,45 @@
 {
-    "pluginAlias": "RandomDelaySwitches",
-    "pluginType": "platform",
-    "headerDisplay": "Delay switch platform for Homebridge, with or without a random delay",
-    "footerDisplay": "For more information see the [README](https://github.com/kernie66/homebridge-delay-switches#readme)",
-    "singular": false,
-    "schema": {
-        "type": "object",
-        "properties": {
+  "pluginAlias": "RandomDelaySwitches",
+  "pluginType": "platform",
+  "headerDisplay": "Delay switch platform for Homebridge, with or without a random delay",
+  "footerDisplay": "For more information see the [README](https://github.com/kernie66/homebridge-delay-switches#readme)",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "Plugin name as displayed in the homebridge log.",
+        "type": "string",
+        "required": true,
+        "default": "RndDlySw"
+      },
+      "switches": {
+        "title": "Delay switches",
+        "notitle": true,
+        "type": "array",
+        "items": {
+          "description": "<b>Delay switch</b>",
+          "type": "object",
+          "properties": {
             "name": {
-                "title": "Accessory Name",
-                "type": "string",
-                "required": true,
-                "description": "Name of the switch. The motion sensor name will be appended with 'Trigger'."
+              "title": "Name of the switch",
+              "description": "Name of the switch. The motion sensor name will be appended with 'Trigger'."
+              "type": "string",
+              "required": true
             },
             "delay": {
-                "title": "Delay Time in Seconds",
-                "type": "integer",
-                "required": true,
-                "default": 60,
-                "minimum": 1,
-                "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)"
+              "title": "Delay",
+              "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)",
+              "type": "integer",
+              "default": 60,
+              "minimum": 1,
+              "required": true
             },
             "minDelay": {
                 "title": "Minimum Delay",
                 "type": "integer",
                 "default": 1,
+                "minimum": 1,
                 "description": "The minimum value for a random delay in seconds (set to less than the delay)"
             },
             "random": {
@@ -46,7 +61,6 @@
                 "default": false,
                 "required": false
             }
-
         }
     }
 }

@@ -16,7 +16,7 @@
         "required": true,
         "default": "RandomDelaySwitches"
       },
-      "switches": 
+      "delaySwitches": 
       {
         "title": "Delay switches",
         "notitle": true,

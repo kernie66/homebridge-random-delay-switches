@@ -14,7 +14,7 @@
         "description": "Plugin name as displayed in the homebridge log.",
         "type": "string",
         "required": true,
-        "default": "RndDlySw"
+        "default": "RandomDelaySwitches"
       },
       "switches": 
       {
@@ -67,8 +67,8 @@
             },
             "startOnReboot": 
             {
-              "title": "Turn ON when HomeBridge Restarts",
-              "description": "When Enabled, the switch will be turned ON and start the timer when HomeBridge server restarts",
+              "title": "Turn On when Homebridge restarts",
+              "description": "When Enabled, the switch will be turned On and start the timer when Homebridge server restarts",
               "type": "boolean",
               "default": false,
               "required": false

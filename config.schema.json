@@ -40,7 +40,7 @@
               "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)",
               "type": "integer",
               "default": 60,
-//              "minimum": 1,
+              "minimum": 1,
               "maximum": 3600,
               "required": true
             },
@@ -49,7 +49,7 @@
               "title": "Minimum Delay",
               "type": "integer",
               "default": 1,
-//              "minimum": 1,
+              "minimum": 1,
               "maximum": 3599,
               "description": "The minimum value for a random delay in seconds (set to less than the delay)"
             },

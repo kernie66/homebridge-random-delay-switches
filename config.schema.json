@@ -40,8 +40,6 @@
               "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)",
               "type": "integer",
               "default": 60,
-              "minimum": 1,
-              "maximum": 3600,
               "required": true
             },
             "minDelay": 
@@ -49,8 +47,6 @@
               "title": "Minimum Delay",
               "type": "integer",
               "default": 1,
-              "minimum": 1,
-              "maximum": 3599,
               "description": "The minimum value for a random delay in seconds (set to less than the delay)"
             },
             "random": 
@@ -80,8 +76,6 @@
               "title": "Repetitions",
               "type": "integer",
               "default": 0,
-              "minimum": 0,
-              "maximum": 10,
               "description": "The number of times the delay switch is activated after the first activation (0 - 10)"
             }
           }

@@ -1,0 +1,93 @@
+{
+  "pluginAlias": "RandomDelaySwitches",
+  "pluginType": "platform",
+  "headerDisplay": "Delay switch platform for Homebridge, with or without a random delay",
+  "footerDisplay": "For more information see the [README](https://github.com/kernie66/homebridge-delay-switches#readme)",
+  "singular": true,
+  "schema": 
+  {
+    "type": "object",
+    "properties": 
+    {
+      "name": 
+      {
+        "description": "Plugin name as displayed in the homebridge log.",
+        "type": "string",
+        "required": true,
+        "default": "RandomDelaySwitches"
+      },
+      "delaySwitches": 
+      {
+        "title": "Delay switches",
+        "notitle": true,
+        "type": "array",
+        "items": 
+        {
+          "description": "<b>Delay switch</b>",
+          "type": "object",
+          "properties": 
+          {
+            "name": 
+            {
+              "title": "Name of the switch",
+              "description": "Name of the switch and the motion sensor.",
+              "type": "string",
+              "required": true
+            },
+            "delay": 
+            {
+              "title": "Delay",
+              "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)",
+              "type": "integer",
+              "default": 60,
+              "required": true
+            },
+            "minDelay": 
+            {
+              "title": "Minimum Delay",
+              "type": "integer",
+              "default": 1,
+              "description": "The minimum value for a random delay in seconds (set to less than the delay)"
+            },
+            "random": 
+            {
+              "title": "Random Delay",
+              "type": "boolean",
+              "default": false,
+              "description": "The delay will be a random value from the minimum delay to the delay value above."
+            },
+            "disableSensor": 
+            {
+              "title": "Disable Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "The motion sensor will be disabled if set to true."
+            },
+            "startOnReboot": 
+            {
+              "title": "Turn On when Homebridge restarts",
+              "description": "When set to true, the switch will be turned On and start the timer when Homebridge server restarts.",
+              "type": "boolean",
+              "default": false,
+              "required": false
+            },
+            "repeats": 
+            {
+              "title": "Repetitions",
+              "type": "integer",
+              "default": 0,
+              "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
+            },
+            "hidden":
+            {
+              "title": "Hide Eve Characteristics",
+              "type": "boolean",
+              "default": false,
+              "description": "Hide characteristics for the switch from the Eve app. They will not be available for automation rules."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "homebridge-random-delay-switches",
+  "version": "0.0.1",
+  "description": "Delay switch with or without a random delay for Homebridge: https://github.com/nfarina/homebridge",
+  "license": "MIT",
+  "keywords": [
+    "homebridge-plugin",
+    "delay",
+    "random",
+    "timer",
+    "automation"
+  ],
+  "dependencies": {
+    "homebridge-lib": "~5.1.2",
+    "abort-controller": "~3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kernie66/homebridge-random-delay-switches.git"
+  },
+  "bugs": {
+    "url": "http://github.com/kernie66/homebridge-random-delay-switches/issues"
+  },
+  "engines": {
+    "node": ">=10.17.0",
+    "homebridge": ">=1.1.0"
+  },
+  "homepage": "http://github.com/kernie66/homebridge-random-delay-switches#readme",
+  "author": "Kenneth Jagenheim, rewritten from plugin by Simone Karin Lehmann"
+}

@@ -11,8 +11,9 @@
     "automation"
   ],
   "dependencies": {
+    "abort-controller": "~3.0.0",
     "homebridge-lib": "~5.1.2",
-    "abort-controller": "~3.0.0"
+    "np": "^7.5.0"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,9 @@
   "engines": {
     "node": ">=10.17.0",
     "homebridge": ">=1.1.0"
+  },
+  "scripts": {
+    "test": "echo \"No test specified\""
   },
   "homepage": "http://github.com/kernie66/homebridge-random-delay-switches#readme",
   "author": "Kenneth Jagenheim, rewritten from plugin by Simone Karin Lehmann"

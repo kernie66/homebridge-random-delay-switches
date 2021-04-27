@@ -30,7 +30,7 @@
             "name": 
             {
               "title": "Name of the switch",
-              "description": "Name of the switch. The motion sensor name will be appended with 'Trigger'.",
+              "description": "Name of the switch and the motion sensor.",
               "type": "string",
               "required": true
             },
@@ -61,12 +61,12 @@
               "title": "Disable Sensor",
               "type": "boolean",
               "default": false,
-              "description": "The motion sensor will be disabled."
+              "description": "The motion sensor will be disabled if set to true."
             },
             "startOnReboot": 
             {
               "title": "Turn On when Homebridge restarts",
-              "description": "When Enabled, the switch will be turned On and start the timer when Homebridge server restarts",
+              "description": "When set to true, the switch will be turned On and start the timer when Homebridge server restarts.",
               "type": "boolean",
               "default": false,
               "required": false
@@ -76,7 +76,14 @@
               "title": "Repetitions",
               "type": "integer",
               "default": 0,
-              "description": "The number of times the delay switch is activated after the first activation (0 - 10)"
+              "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
+            },
+            "hidden":
+            {
+              "title": "Hide Eve Characteristics",
+              "type": "boolean",
+              "default": false,
+              "description": "Hide characteristics for the switch from the Eve app. They will not be available for automation rules."
             }
           }
         }

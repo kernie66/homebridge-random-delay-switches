@@ -55,6 +55,34 @@ Basically, all you need to do is:
 
 The characteristics of the switch are visible in the "EVE" app, unless 'hidden' is set. These characteristics can be updated and used in automation conditions. The "Controller for Homekit" app is also a good way of controlling your automations.
 
+## Configuration options
+
+The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in Eve and Controller for HomeKit, but will revert to the set configuration when the plugin is restarted.
+
+Parameter | Default | Description
+----------|---------|----------------
+`delay`   | 60      | (Maximum) delay in seconds (1 - 3600).
+`minDelay` | 1      | Minimum delay in seconds (1 - 3600). Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
+`random`  | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
+`disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
+`startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Combine with a time of day condition, so your lights don't turn on while you sleep (boolean)
+`repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
+`hidden`   | `false` | Hides the configuration parameters and control values from showing up in Eve and Controller for HomeKit (boolean)
+
+## Control values
+
+The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit (unless `hidden` is `true`). The control values can be used in conditions for automations.
+
+Value | Description
+------|-------------
+Last Motion | The time that the motion sensor was last triggered by the delay switch. Includes a history graph when viewed in Eve.
+Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay.
+Delay time | Corresponds to the `delay` parameter.
+Delay time (minimum) | Corresponds to the `minDelay` parameter.
+Random enabled | Corresponds to the `random` parameter.
+Repetition (current) | The current repetition count, only valid when the switch is active. The initial activation of the switch is 0. Can be used in automations to control different lights at different repetition cycles.
+Repetitions (total) | Corresponds to the `repeats` parameter. The switch will be turned Off during the motion activation, then turned On again for the number of repetition times.
+
 ## Why do we need this plugin?
 
 The main purpose is to use it with the random feature. This way you can simulate your presence at home by switching lights on and off at

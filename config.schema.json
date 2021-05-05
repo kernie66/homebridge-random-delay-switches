@@ -89,5 +89,58 @@
         }
       }
     }
-  }
+  },
+  "layout": [
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": ["name"]
+        },
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": ["hubIP"]
+        },
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": ["hubName"]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Random Delay Switches",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "nodescription": true,
+          "notitle": true,
+          "key": "delaySwitches",
+          "title": "Delay Switch",
+          "type": "array",
+          "items": [
+            {
+              "type": "div",
+              "displayFlex": true,
+              "flex-direction": "row",
+              "items": [
+                {
+                  "key": "delaySwitches[]",
+                  "flex": "1 1 50px",
+                  "notitle": true,
+                  "placeholder": "Enter switch name..."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

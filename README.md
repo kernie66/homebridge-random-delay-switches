@@ -1,3 +1,6 @@
+[![npm](https://badgen.net/npm/v/homebridge-random-delay-switches)](https://www.npmjs.com/package/homebridge-random-delay-switches)
+[![npm](https://badgen.net/npm/dw/homebridge-random-delay-switches)](https://www.npmjs.com/package/homebridge-random-delay-switches)
+[![npm](https://badgen.net/npm/dt/homebridge-random-delay-switches)](https://www.npmjs.com/package/homebridge-random-delay-switches)
 
 # Homebridge-Random-Delay-Switches
 

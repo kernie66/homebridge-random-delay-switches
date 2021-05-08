@@ -23,13 +23,12 @@
         "type": "array",
         "items": 
         {
-          "description": "<b>Delay switch</b>",
           "type": "object",
           "properties": 
           {
             "name": 
             {
-              "title": "Name of the switch",
+              "title": "Delay Switch Name",
               "description": "Name of the switch and the motion sensor.",
               "type": "string",
               "required": true
@@ -47,26 +46,23 @@
               "title": "Minimum Delay",
               "type": "integer",
               "default": 1,
-              "description": "The minimum value for a random delay in seconds (set to less than the delay)"
+              "description": "The delay will be a random value from the minimum delay to the delay value above."
             },
             "random": 
             {
               "title": "Random Delay",
               "type": "boolean",
-              "default": false,
-              "description": "The delay will be a random value from the minimum delay to the delay value above."
+              "default": false
             },
             "disableSensor": 
             {
-              "title": "Disable Sensor",
+              "title": "Disable Motion Sensor",
               "type": "boolean",
-              "default": false,
-              "description": "The motion sensor will be disabled if set to true."
+              "default": false
             },
             "startOnReboot": 
             {
-              "title": "Turn On when Homebridge restarts",
-              "description": "When set to true, the switch will be turned On and start the timer when Homebridge server restarts.",
+              "title": "Turn On Switch When Homebridge Restarts",
               "type": "boolean",
               "default": false,
               "required": false
@@ -82,12 +78,76 @@
             {
               "title": "Hide Eve Characteristics",
               "type": "boolean",
-              "default": false,
-              "description": "Hide characteristics for the switch from the Eve app. They will not be available for automation rules."
+              "default": false
             }
           }
         }
       }
     }
-  }
+  },
+  "layout": [
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": ["name"]
+        }	
+      ]
+    },
+    {
+      "nodescription": true,
+      "notitle": false,
+      "key": "delaySwitches",
+      "title": "Delay Switches",
+      "type": "array",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "notitle": true,
+          "items": [
+            {
+              "key": "delaySwitches[]",
+              "title": "{{ 'Switch ' + $index + ' settings' }}",
+              "items": [
+                {
+		          "type": "section",
+	              "items": ["delaySwitches[].name"]
+                },
+                {
+		          "type": "section",
+	              "items": ["delaySwitches[].delay"]
+                },
+ 		        {
+		          "key": "delaySwitches[].random"
+		        },
+                {
+                  "type": "fieldset",
+		          "condition": "delaySwitches[arrayIndex].random",
+                  "items": [
+                    "delaySwitches[].minDelay"
+		          ]
+                },
+                {
+		          "type": "section",
+		          "title": "More options",
+		          "expandable": true,
+		          "expanded": false,
+	              "items": [
+                    "delaySwitches[].disableSensor",
+                    "delaySwitches[].startOnReboot",
+                    "delaySwitches[].hidden",
+                    "delaySwitches[].repeats"
+		          ]
+                }
+              ]
+	        }
+          ]
+        }
+      ]
+    }
+  ]
 }

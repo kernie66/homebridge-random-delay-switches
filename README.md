@@ -13,7 +13,7 @@ By using the minimum delay, you can make sure that there is a delay for at least
 ## How to install
 
  * ```sudo npm install -g homebridge-random-delay-switches```
-* Create an accessory in your config.json file, or use the Homebridge UI
+* Create a platform and a delay switch in your config.json file, or use the Homebridge UI
 * Restart homebridge
 
 ## Example config.json:

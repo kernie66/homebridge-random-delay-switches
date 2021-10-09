@@ -36,7 +36,7 @@
             "delay": 
             {
               "title": "Delay",
-              "description": "The delay in seconds after which the motion sensor is triggered. (max. 3600 seconds)",
+              "description": "The delay in seconds after which the motion sensor is triggered.",
               "type": "integer",
               "default": 60,
               "required": true

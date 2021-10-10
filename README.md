@@ -31,8 +31,7 @@ By using the minimum delay, you can make sure that there is a delay for at least
             "random": true,
             "disableSensor": false,
             "startOnReboot": false,
-            "repeats": 0,
-            "hidden": false
+            "repeats": 0
           }
         ]
        }
@@ -56,7 +55,7 @@ Basically, all you need to do is:
 4. Use this switch in any scene or automation.
 5. Set an automation to trigger when this switch is turned ON or the motion sensor is triggered - The "EVE" app is very recommended to set these kind of automations.
 
-The characteristics of the switch are visible in the "EVE" app, unless 'hidden' is set. These characteristics can be updated and used in automation conditions. The updates will be valid until the `Restore default` control is activated. The "Controller for Homekit" app is also a good way of controlling your automations.
+The characteristics of the switch are visible in the Eve app. These characteristics can be updated and used in automation conditions. The updates will be valid until the `Restore default` control is activated. The "Controller for Homekit" app is also a good way of controlling your automations.
 
 ## Configuration options
 
@@ -70,7 +69,6 @@ Parameter | Default | Description
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
-`hidden`   | `false` | Hides the configuration parameters and control values from showing up in "EVE" and Controller for HomeKit (boolean). (Not tested in 1.0.2, may break the function if set to `true`)
 
 ## Control values
 
@@ -109,7 +107,7 @@ Also it can be use with any device that require a certain delay time from other 
 
 * **When the delay switch is getting ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed.**
 
-* **If Homebridge or the plugin is restarted while a switch is active, the switch will continue the delay after the restart. This will override the `startOnReboot` configuration.
+* **If Homebridge or the plugin is restarted while a switch is active, the switch will continue the delay after the restart. This will override the `startOnReboot` configuration.**
 
 ## Thanks
 This plugin is based on [homebridge-random-delay-switch](https://github.com/lisanet/homebridge-random-delay-switch), which in turn is based on [homebridge-delay-switch](https://github.com/nitaybz/homebridge-delay-switch) and [homebridge-automation-switches](https://github.com/grover/homebridge-automation-switches).

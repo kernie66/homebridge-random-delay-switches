@@ -73,12 +73,6 @@
               "type": "integer",
               "default": 0,
               "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
-            },
-            "hidden":
-            {
-              "title": "Hide Eve Characteristics",
-              "type": "boolean",
-              "default": false
             }
           }
         }
@@ -139,7 +133,6 @@
 	              "items": [
                     "delaySwitches[].disableSensor",
                     "delaySwitches[].startOnReboot",
-                    "delaySwitches[].hidden",
                     "delaySwitches[].repeats"
 		          ]
                 }

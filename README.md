@@ -10,6 +10,8 @@ The random duration is very useful if you want an automation which simulates you
 
 By using the minimum delay, you can make sure that there is a delay for at least the minimum time. This is useful for temporary switching on a light, e.g. when a camera or sensor detects motion.
 
+It is also possible to create a stateful switch, with or without the motion sensor, which stays in the current state until commanded to the other state.
+
 ## How to install
 
  * ```sudo npm install -g homebridge-random-delay-switches```
@@ -42,7 +44,7 @@ This gives you a switch which will trigger the motion sensor after a random dela
 ## Why Adding Motion Sensor?
 
 A motion sensor is created for each accessory in order to be able to cancel the timer and the attached automations.
-How it works? you can set the automation to be triggered from the motion sensor instead of the switch OFF command and therefore
+How it works? You can set the automation to be triggered from the motion sensor instead of the switch OFF command and therefore
 you can turn OFF the switch and prevent the motion sensor from being triggered or any attached automations.
 If you have no use of the sensor you can remove it by adding `"disableSensor": true` to your config.
 
@@ -59,7 +61,7 @@ The characteristics of the switch are visible in the Eve app. These characterist
 
 ## Configuration options
 
-The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in "EVE" and Controller for HomeKit, but will revert to the set configuration when the plugin is restarted.
+The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in Eve and Controller for HomeKit, see [Control values](#control-values), and will keep the settings when the plugin is restarted.
 
 Parameter | Default | Description
 ----------|---------|----------------
@@ -67,24 +69,40 @@ Parameter | Default | Description
 `minDelay` | 1      | Minimum delay in seconds. Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
 `random`  | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
-`startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
+`startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
 
-## Control values
+## Control values{#control-values}
 
-The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations.
+The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations and set in scenes. Each switch can be controlled individually and dynamically through these values, without restarting Homebridge. Note that values in Eve are set using sliders, while Controller for Homekit gives options for manual input.
 
 Value | Description
 ------|-------------
 Last Motion | The time that the motion sensor was last triggered by the delay switch. Includes a history graph when viewed in Eve.
-Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay.
-Delay time | Corresponds to the `delay` parameter.
-Delay time (minimum) | Corresponds to the `minDelay` parameter.
+Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay or the fixed value.
+Delay time (h/m/s) | Corresponds to the `delay` parameter, but separated in hours, minutes and seconds for better control using Eve sliders.
+Delay time minimum (%) | Corresponds to the `minDelay` parameter, but given as a percentage of the maximum time. 0% = 1 second, 100% = `delay`.
 Random enabled | Corresponds to the `random` parameter.
 Repetition (current) | The current repetition count, only valid when the switch is active. The initial activation of the switch is 0. Can be used in automations to control different lights at different repetition cycles.
 Repetitions (total) | Corresponds to the `repeats` parameter. The switch will be turned Off during the motion activation, then turned On again for the number of repetition times.
-Restore default | Updates the configuration parameters to the default values from the configuration file.
+Restore default | Restores the configuration parameters to the default values from the configuration file.
 Time left of timer | The time left before the delay time is up. Decremented by the heartbeat value. Used to continue the delay after a restart, if the delay was active.
+Heartrate | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases.
+Log Level | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2. 
+
+## Advanced usage
+
+### Change values in scenes
+
+The control values can be changed by scenes using Eve and Controller for Homekit, if you want to use the same switch (e.g. to trigger your lights) but with different parameters for specific conditions. Just create a scene, change the values and turn on the switch. Note that these changes will be set until changed the next time. 
+
+*Hint: You can create a scene that restores the control values to the default configuration, which is triggered by the motion sensor, to ensure that the changes are reset.*
+
+### Stateful switch
+
+A stateful switch can be created by setting the `delay` parameter to 0 s and the `random` parameter to `false`. The switch will trigger the motion sensor (if enabled) each time it is set to on, and will stay on until set to off.
+
+*Hint: Set `startOnReboot` to `true` to get the switch set to on automatically when the plugin starts.*
 
 ## Why do we need this plugin?
 

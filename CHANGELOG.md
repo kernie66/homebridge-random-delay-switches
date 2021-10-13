@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## 1.0.2
+## 1.0.4
+
+### Bugs
+
+- Log level setting did not work, corrected.
+
+### Enhancements
+
+- Changed Eve delay parameters from seconds to separate hours, minutes and seconds.
+- Changed Eve minimum delay parameter from seconds to percentage of maximum delay. None of these changes affects the configuration file.
+- Possibility to use as stateful switch. ([Part of #6](https://github.com/kernie66/homebridge-random-delay-switches/issues/6))
+- Added small delay before initialising the switch timer, to allow change of values in scenes that trigger the switch.
+
+## 1.0.2, 1.0.3
 
 ### Bugs
 

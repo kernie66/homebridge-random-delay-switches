@@ -61,7 +61,7 @@ The characteristics of the switch are visible in the Eve app. These characterist
 
 ## Configuration options
 
-The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in Eve and Controller for HomeKit, see [Control values](#Control values), and will keep the settings when the plugin is restarted.
+The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in Eve and Controller for HomeKit, see [Control values](#control-values), and will keep the settings when the plugin is restarted.
 
 Parameter | Default | Description
 ----------|---------|----------------
@@ -72,7 +72,7 @@ Parameter | Default | Description
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
 
-## Control values
+## Control values{#control-values}
 
 The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations and set in scenes. Each switch can be controlled individually and dynamically through these values, without restarting Homebridge. Note that values in Eve are set using sliders, while Controller for Homekit gives options for manual input.
 
@@ -96,13 +96,13 @@ Log Level | Controls the amount of log entries in the Homebridge log. Set to 0 t
 
 The control values can be changed by scenes using Eve and Controller for Homekit, if you want to use the same switch (e.g. to trigger your lights) but with different parameters for specific conditions. Just create a scene, change the values and turn on the switch. Note that these changes will be set until changed the next time. 
 
-Hint: You can create a scene that restores the control values to the default configuration, which is triggered by the motion sensor, to ensure that the changes are reset.
+*Hint: You can create a scene that restores the control values to the default configuration, which is triggered by the motion sensor, to ensure that the changes are reset.*
 
 ### Stateful switch
 
 A stateful switch can be created by setting the `delay` parameter to 0 s and the `random` parameter to `false`. The switch will trigger the motion sensor (if enabled) each time it is set to on, and will stay on until set to off.
 
-Hint: Set `startOnReboot` to `true` to get the switch set to on automatically when the plugin starts.
+*Hint: Set `startOnReboot` to `true` to get the switch set to on automatically when the plugin starts.*
 
 ## Why do we need this plugin?
 

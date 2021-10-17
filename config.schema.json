@@ -73,6 +73,13 @@
               "type": "integer",
               "default": 0,
               "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
+            },
+            "cronString":
+            {
+              "title": "Schedule",
+              "type": "string",
+              "description": "Schedule the switch activation using cron syntax.",
+              "placeholder": "* * * * * *"
             }
           }
         }
@@ -108,36 +115,43 @@
               "title": "{{ 'Switch ' + $index + ' settings' }}",
               "items": [
                 {
-		          "type": "section",
-	              "items": ["delaySwitches[].name"]
+    		          "type": "section",
+	                "items": ["delaySwitches[].name"]
                 },
                 {
-		          "type": "section",
-	              "items": ["delaySwitches[].delay"]
+		              "type": "section",
+	                "items": ["delaySwitches[].delay"]
                 },
- 		        {
-		          "key": "delaySwitches[].random"
-		        },
+ 		            {
+		              "key": "delaySwitches[].random"
+		            },
                 {
                   "type": "fieldset",
-		          "condition": "delaySwitches[arrayIndex].random",
+		              "condition": "delaySwitches[arrayIndex].random",
                   "items": [
                     "delaySwitches[].minDelay"
-		          ]
+		              ]
                 },
                 {
-		          "type": "section",
-		          "title": "More options",
-		          "expandable": true,
-		          "expanded": false,
-	              "items": [
-                    "delaySwitches[].disableSensor",
-                    "delaySwitches[].startOnReboot",
-                    "delaySwitches[].repeats"
-		          ]
+                  "type": "section",
+                  "title": "More options",
+                  "expandable": true,
+                  "expanded": false,
+                  "items": [
+                      "delaySwitches[].disableSensor",
+                      "delaySwitches[].startOnReboot",
+                      "delaySwitches[].repeats",
+                      {
+                        "type": "section",
+                        "singular": false,
+                        "items": [
+                          "delaySwitches[].cronString"
+                        ]
+                      }
+                  ]
                 }
               ]
-	        }
+	          }
           ]
         }
       ]

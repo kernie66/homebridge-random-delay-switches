@@ -12,7 +12,9 @@
   ],
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "homebridge-lib": "^5.1.14",
+    "cron": "^1.8.2",
+    "cronstrue": "^1.117.0",
+    "homebridge-lib": "^5.1.15",
     "np": "^7.5.0"
   },
   "repository": {

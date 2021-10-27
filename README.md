@@ -12,9 +12,11 @@ By using the minimum delay, you can make sure that there is a delay for at least
 
 It is also possible to create a stateful switch, with or without the motion sensor, which stays in the current state until commanded to the other state.
 
+*(New in v1.1.0)* The switches can be scheduled to turn on automatically by using a **cron** syntax. The delay will start at the scheduled times, which can be useful to trigger other advanced automations, e.g. to check the state of a sensor during specific times or dates.  
+
 ## How to install
 
- * ```sudo npm install -g homebridge-random-delay-switches```
+* ```sudo npm install -g homebridge-random-delay-switches```
 * Create a platform and a delay switch in your config.json file, or use the Homebridge UI
 * Restart homebridge
 
@@ -41,7 +43,7 @@ It is also possible to create a stateful switch, with or without the motion sens
 ```
 This gives you a switch which will trigger the motion sensor after a random delay of 30 to 60 seconds.
 
-## Why Adding Motion Sensor?
+## Why adding motion sensor?
 
 A motion sensor is created for each accessory in order to be able to cancel the timer and the attached automations.
 How it works? You can set the automation to be triggered from the motion sensor instead of the switch OFF command and therefore
@@ -59,6 +61,32 @@ Basically, all you need to do is:
 
 The characteristics of the switch are visible in the Eve app. These characteristics can be updated and used in automation conditions. The updates will be valid until the `Restore default` control is activated. The "Controller for Homekit" app is also a good way of controlling your automations.
 
+### Scheduling with cron
+
+The plugin uses the [cron](https://github.com/kelektiv/node-cron) package for the scheduling. A cron string consists of five or six fields. Six fields are used to schedule down to seconds, and five fields gives control down to minutes. The basic syntax is shown below:
+```
+ # ┌────────────── second (0-59, optional)
+ # │ ┌──────────── minute (0-59)
+ # │ │ ┌────────── hour (0-23)
+ # │ │ │ ┌──────── day of month (1-31)
+ # │ │ │ │ ┌────── month (0-11 or Jan-Dec)
+ # │ │ │ │ │ ┌──── day of week (0-6 or Sun-Sat)
+ # │ │ │ │ │ │
+ # │ │ │ │ │ │
+ # * * * * * *
+```
+
+A cron string of `* * * * * *` (six fields) will trigger every second, while a cron string of `* * * * *` (five fields) will trigger every minute. Several cron strings can be combined by separating them with a `;` (semicolon), to get different scheduled triggers for a switch. Some examples:
+* `*/15 * * * Sat,Sun` will trigger every 15th minute on Saturdays and Sundays
+* `30 15 16-19 * */3 *` will trigger 15th minutes and 30 seconds past the hour from 16:15:30 to 19:15:30 every third month
+* `5/20 16-19 * * Mon-Fri; 5/20 14-20 * * Sat,Sun` will trigger every 20th minute, starting 5 minutes past the hour between 16:05 and 19:45 on weekdays and between 14:05 and 20:45 on weekends
+
+Read more about the available cron patterns [here](https://github.com/kelektiv/node-cron#available-cron-patterns).
+
+Note that Sunday is weekday 0, so if Sunday is used in a range it must come first.
+
+It is not always so easy to get the cron strings right, and they may not be implemented the same way by different libraries or plugins. The selected [cron](https://github.com/kelektiv/node-cron) package seems to work as intended, but to check that you get the intended schedule please check the Homebridge log. When the cron string is set, the log will include a human readable interpretation of the cron string, as well as the five next scheduled times. The readable interpretation is also shown in the [control values](#control-values), but it is limited to 64 characters.
+
 ## Configuration options
 
 The possible configuration parameters are shown in the table below. I find them useful, but maybe I am a control freak :-). The parameters can be changed dynamically in Eve and Controller for HomeKit, see [Control values](#control-values), and will keep the settings when the plugin is restarted.
@@ -71,14 +99,17 @@ Parameter | Default | Description
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
+`cron` | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
 
 ## Control values{#control-values}
 
-The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations and set in scenes. Each switch can be controlled individually and dynamically through these values, without restarting Homebridge. Note that values in Eve are set using sliders, while Controller for Homekit gives options for manual input.
+The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations and set in scenes. Each switch can be controlled individually and dynamically through these values, without restarting Homebridge. Note that numerical values in Eve are set using sliders, while Controller for Homekit gives options for manual input.
 
 Value | Description
 ------|-------------
 Last Motion | The time that the motion sensor was last triggered by the delay switch. Includes a history graph when viewed in Eve.
+Cron | A text field where a new cron string can be entered. Eve remembers the string and is recommended to try out new schedules. Controller for Homekit shows the current string as a placeholder, but you cannot edit an existing string.
+Cron schedule | Shows a readable interpretation of the cron string, limited to 64 characters. Use this to check that your cron strings gives the intended schedule.
 Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay or the fixed value.
 Delay time (h/m/s) | Corresponds to the `delay` parameter, but separated in hours, minutes and seconds for better control using Eve sliders.
 Delay time minimum (%) | Corresponds to the `minDelay` parameter, but given as a percentage of the maximum time. 0% = 1 second, 100% = `delay`.
@@ -94,7 +125,7 @@ Log Level | Controls the amount of log entries in the Homebridge log. Set to 0 t
 
 ### Change values in scenes
 
-The control values can be changed by scenes using Eve and Controller for Homekit, if you want to use the same switch (e.g. to trigger your lights) but with different parameters for specific conditions. Just create a scene, change the values and turn on the switch. Note that these changes will be set until changed the next time. 
+The control values can be changed by scenes using Eve and Controller for Homekit, if you want to use the same switch (e.g. to trigger your lights) but with different parameters for specific conditions. Just create a scene, change the values and turn on the switch. Note that these changes will be set until changed the next time. Text values can only be set in scenes using Controller for Homekit, they are not visible in Eve scenes.
 
 *Hint: You can create a scene that restores the control values to the default configuration, which is triggered by the motion sensor, to ensure that the changes are reset.*
 

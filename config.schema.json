@@ -67,6 +67,13 @@
               "default": false,
               "required": false
             },
+            "singleActivation":
+            {
+              "title": "Disable Multiple Activation When Switch Is On",
+              "type": "boolean",
+              "default": false,
+              "required": false
+            },
             "repeats": 
             {
               "title": "Repetitions",
@@ -138,16 +145,11 @@
                   "expandable": true,
                   "expanded": false,
                   "items": [
-                      "delaySwitches[].disableSensor",
-                      "delaySwitches[].startOnReboot",
-                      "delaySwitches[].repeats",
-                      {
-                        "type": "section",
-                        "singular": false,
-                        "items": [
-                          "delaySwitches[].cronString"
-                        ]
-                      }
+                    "delaySwitches[].disableSensor",
+                    "delaySwitches[].startOnReboot",
+                    "delaySwitches[].singleActivation",
+                    "delaySwitches[].repeats",
+                    "delaySwitches[].cronString"
                   ]
                 }
               ]

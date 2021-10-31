@@ -98,6 +98,7 @@ Parameter | Default | Description
 `random`  | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
+`singleActivation` | `false` | Disables the extension of the timer if the switch is activated repeatedly while on. Default is to restart the delay switch for each activation while on.
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
 `cron` | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
 
@@ -118,7 +119,7 @@ Repetition (current) | The current repetition count, only valid when the switch 
 Repetitions (total) | Corresponds to the `repeats` parameter. The switch will be turned Off during the motion activation, then turned On again for the number of repetition times.
 Restore default | Restores the configuration parameters to the default values from the configuration file.
 Time left of timer | The time left before the delay time is up. Decremented by the heartbeat value. Used to continue the delay after a restart, if the delay was active.
-Heartrate | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases.
+Heartrate | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases, unless the delay time is long.
 Log Level | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2. 
 
 ## Advanced usage
@@ -131,7 +132,7 @@ The control values can be changed by scenes using Eve and Controller for Homekit
 
 ### Stateful switch
 
-A stateful switch can be created by setting the `delay` parameter to 0 s and the `random` parameter to `false`. The switch will trigger the motion sensor (if enabled) each time it is set to on, and will stay on until set to off.
+A stateful switch can be created by setting the `delay` parameter to 0 s and the `random` parameter to `false`. The switch will trigger the motion sensor (if enabled) each time it is set to on, and will stay on until set to off. Set `singleActivation` to `true` to disable repeated motion sensor trigger when the switch is on.
 
 *Hint: Set `startOnReboot` to `true` to get the switch set to on automatically when the plugin starts.*
 

@@ -151,11 +151,13 @@ to turn ON a light when the delay swich is turned ON and turn OFF the light when
 
 Also it can be use with any device that require a certain delay time from other devices (TV + RPi-Kodi / PC + SSH / etc...)
 
+I also found that I used another plugin to trigger the delay switches by schedules, so I incorporated the cron feature in this plugin to get what I want to use myself.
+
 ## Good to know
 
 * **When manually turning OFF the switch, the timer will stop and the motion sensor will NOT be triggered.**
 
-* **When the delay switch is getting ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed.**
+* **When the delay switch is getting ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed. This can be disabled by the `singleActivation` configuration.**
 
 * **If Homebridge or the plugin is restarted while a switch is active, the switch will continue the delay after the restart. This will override the `startOnReboot` configuration.**
 

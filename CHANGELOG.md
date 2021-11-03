@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.10.0
+
+### Enhancements
+
+- Added possibility to schedule the activation of a switch using cron syntax. The schedule can be changed in Eve and Controller for Homekit.
+- Added single activation option, so that the delay isn't restarted if the switch is repeatedly turned on while already on.
+
+### Bump dependencies
+
+- NodeJS v16.13.0 LTS
+- homebridge-lib v5.1.16.
+
 ## 1.0.4
 
 ### Bugs

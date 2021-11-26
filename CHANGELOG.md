@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.1
+
+### Bump dependencies
+
+- homebridge v1.3.8
+- homebridge-lib v5.1.18
+
+- Moved eslint and np to devDependencies
+
 ## 1.1.0
 
 ### Enhancements
@@ -12,7 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Bump dependencies
 
 - NodeJS v16.13.0 LTS
-- homebridge-lib v5.1.16.
+- homebridge-lib v5.1.16
 
 ## 1.0.4
 

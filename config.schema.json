@@ -79,7 +79,7 @@
               "title": "Repetitions",
               "type": "integer",
               "default": 0,
-              "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
+              "description": "The number of times the delay switch is activated after the first activation (0 - 10, -1 for infinite repeats)."
             },
             "cronString":
             {

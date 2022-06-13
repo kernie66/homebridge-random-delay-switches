@@ -99,7 +99,7 @@ Parameter | Default | Description
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `singleActivation` | `false` | Disables the extension of the timer if the switch is activated repeatedly while on. Default is to restart the delay switch for each activation while on.
-`repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on).
+`repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on). Set to -1 for infinite repeats.
 `cron` | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
 
 ## Control values{#control-values}

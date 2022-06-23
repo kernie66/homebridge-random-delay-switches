@@ -93,7 +93,7 @@ The possible configuration parameters are shown in the table below. I find them 
 
 Parameter | Default | Description
 ----------|---------|----------------
-`delay`   | 60      | (Maximum) delay in seconds.
+`delay`   | 60      | (Maximum) delay in seconds, max value = 823999 (9 days, 23:59:59).
 `minDelay` | 1      | Minimum delay in seconds. Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
 `random`  | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
@@ -112,7 +112,7 @@ Last Motion | The time that the motion sensor was last triggered by the delay sw
 Cron | A text field where a new cron string can be entered. Eve remembers the string and is recommended to try out new schedules. Controller for Homekit shows the current string as a placeholder, but you cannot edit an existing string.
 Cron schedule | Shows a readable interpretation of the cron string, limited to 64 characters. Use this to check that your cron strings gives the intended schedule.
 Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay or the fixed value.
-Delay time (h/m/s) | Corresponds to the `delay` parameter, but separated in hours, minutes and seconds for better control using Eve sliders.
+Delay time (d/h/m/s) | Corresponds to the `delay` parameter, but separated in days,hours, minutes and seconds for better control using Eve sliders.
 Delay time minimum (%) | Corresponds to the `minDelay` parameter, but given as a percentage of the maximum time. 0% = 1 second, 100% = `delay`.
 Random enabled | Corresponds to the `random` parameter.
 Repetition (current) | The current repetition count, only valid when the switch is active. The initial activation of the switch is 0. Can be used in automations to control different lights at different repetition cycles.

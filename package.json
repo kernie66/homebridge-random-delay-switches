@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "eslint": "^8.18.0",
-    "np": "^7.6.1"
+    "np": "^7.6.2"
   },
   "repository": {
     "type": "git",

@@ -2,13 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2
+
+### Enhancements
+
+* Added infinite repetitions (set to -1) (#10).
+* Increased maximum delay time to almost 10 days (#10).
+* Added days delay control for EVE and Controller for Homekit.
+* Corrections due to changes in updated packages.
+* Added missing dependencies.
+
+### Bump dependencies
+
+* NodeJS v16.15.1 LTS
+* homebridge v1.5.0
+* homebridge-lib v5.6.1
+* cron v2.0.0
+* events v3.3.0
+* luxon v2.4.0
+
 ## 1.1.1
 
 ### Bump dependencies
 
 - homebridge v1.3.8
 - homebridge-lib v5.1.18
-
 - Moved eslint and np to devDependencies
 
 ## 1.1.0

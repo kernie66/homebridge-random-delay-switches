@@ -16,7 +16,9 @@
     "abort-controller": "^3.0.0",
     "cron": "^2.0.0",
     "cronstrue": "^2.10.0",
-    "homebridge-lib": "^5.6.1"
+    "events": "^3.3.0",
+    "homebridge-lib": "^5.6.1",
+    "luxon": "^2.4.0"
   },
   "devDependencies": {
     "eslint": "^8.18.0",

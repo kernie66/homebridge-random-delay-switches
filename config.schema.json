@@ -87,6 +87,13 @@
               "type": "string",
               "description": "Schedule the switch activation using cron syntax.",
               "placeholder": "* * * * * *"
+            },
+            "heartrate":
+            {
+              "title": "Heartrate",
+              "type": "integer",
+              "default": 15,
+              "description": "Heartrate interval of the switch"
             }
           }
         }
@@ -149,7 +156,8 @@
                     "delaySwitches[].startOnReboot",
                     "delaySwitches[].singleActivation",
                     "delaySwitches[].repeats",
-                    "delaySwitches[].cronString"
+                    "delaySwitches[].cronString",
+                    "delaySwitches[].heartrate"
                   ]
                 }
               ]

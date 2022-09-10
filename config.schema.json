@@ -54,6 +54,12 @@
               "type": "boolean",
               "default": false
             },
+            "useConfig": 
+            {
+              "title": "Restore Configuration at Restart",
+              "type": "boolean",
+              "default": true
+            },
             "disableSensor": 
             {
               "title": "Disable Motion Sensor",
@@ -145,6 +151,9 @@
                   "items": [
                     "delaySwitches[].minDelay"
 		              ]
+                },
+                {
+                  "key": "delaySwitches[].useConfig"
                 },
                 {
                   "type": "section",

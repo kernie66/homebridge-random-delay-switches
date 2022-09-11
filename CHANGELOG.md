@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.1
+
+### Enhancements
+
+* Added config parameter to keep or restore updated parameters when Homebridge restarts.
+* Added possibility to use D:HH:MM:SS format for delays.
+* Added heartrate config parameter, and made it persistent over restarts (#11.3).
+
+### Bugs
+
+* Days were not included in delay calculations for HH, MM and SS (#11.1).
+* Stability improvements (may address #11.2)
+
+### Bump dependencies
+
+* NodeJS v16.17.0 LTS
+* homebridge-lib v5.6.5
+* cron v2.1.0
+* luxon v3.0.3
+
 ## 1.2.0
 
 ### Enhancements

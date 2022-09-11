@@ -14,6 +14,10 @@ It is also possible to create a stateful switch, with or without the motion sens
 
 *(New in v1.1.0)* The switches can be scheduled to turn on automatically by using a **cron** syntax. The delay will start at the scheduled times, which can be useful to trigger other advanced automations, e.g. to check the state of a sensor during specific times or dates.  
 
+*(New in v1.2.0)* Increased the max delay to almost 10 days and added infinite repeats.  
+
+*(New in v1.2.1)* Added config parameter to select if config values or user changes will be used when Homebridge restarts for each switch.  
+
 ## How to install
 
 * ```sudo npm install -g homebridge-random-delay-switches```
@@ -95,12 +99,14 @@ Parameter | Default | Description
 ----------|---------|----------------
 `delay`   | 60      | (Maximum) delay in seconds, max value = 823999 (9 days, 23:59:59).
 `minDelay` | 1      | Minimum delay in seconds. Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
-`random`  | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
+`random`   | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `singleActivation` | `false` | Disables the extension of the timer if the switch is activated repeatedly while on. Default is to restart the delay switch for each activation while on.
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on). Set to -1 for infinite repeats.
-`cron` | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
+`cron`      | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
+`useConfig` | `true` | Use the values from the config file when Homebridge restarts. Set this to `false` to keep any changes to the parameters made in e.g. Eve or Controller for Homekit when Homebridge restarts.
+`heartbeat` | 15     | The time in seconds between polls in the plugin.
 
 ## Control values{#control-values}
 
@@ -108,8 +114,8 @@ The plugin provides some control values that can be viewed and used in Eve and C
 
 Value | Description
 ------|-------------
-Last Motion | The time that the motion sensor was last triggered by the delay switch. Includes a history graph when viewed in Eve.
-Cron | A text field where a new cron string can be entered. Eve remembers the string and is recommended to try out new schedules. Controller for Homekit shows the current string as a placeholder, but you cannot edit an existing string.
+Last Motion  | The time that the motion sensor was last triggered by the delay switch. Includes a history graph when viewed in Eve.
+Cron         | A text field where a new cron string can be entered. Eve remembers the string and is recommended to try out new schedules. Controller for Homekit shows the current string as a placeholder, but you cannot edit an existing string.
 Cron schedule | Shows a readable interpretation of the cron string, limited to 64 characters. Use this to check that your cron strings gives the intended schedule.
 Current timeout value | The actual delay value used by the switch. Only valid when the switch is On. Shows the calculated random delay or the fixed value.
 Delay time (d/h/m/s) | Corresponds to the `delay` parameter, but separated in days,hours, minutes and seconds for better control using Eve sliders.
@@ -119,8 +125,8 @@ Repetition (current) | The current repetition count, only valid when the switch 
 Repetitions (total) | Corresponds to the `repeats` parameter. The switch will be turned Off during the motion activation, then turned On again for the number of repetition times.
 Restore default | Restores the configuration parameters to the default values from the configuration file.
 Time left of timer | The time left before the delay time is up. Decremented by the heartbeat value. Used to continue the delay after a restart, if the delay was active.
-Heartrate | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases, unless the delay time is long.
-Log Level | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2. 
+Heartrate   | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases, unless the delay time is long. Corresponds to the `heartrate` parameter.
+Log Level   | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2. 
 
 ## Advanced usage
 
@@ -160,6 +166,8 @@ I also found that I used another plugin to trigger the delay switches by schedul
 * **When the delay switch is getting ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed. This can be disabled by the `singleActivation` configuration.**
 
 * **If Homebridge or the plugin is restarted while a switch is active, the switch will continue the delay after the restart. This will override the `startOnReboot` configuration.**
+
+* **If the switch delay is changed while the switch is on, the new delay value will be used the next time the switch is (re)started.**
 
 ## Thanks
 This plugin is based on [homebridge-random-delay-switch](https://github.com/lisanet/homebridge-random-delay-switch), which in turn is based on [homebridge-delay-switch](https://github.com/nitaybz/homebridge-delay-switch) and [homebridge-automation-switches](https://github.com/grover/homebridge-automation-switches).

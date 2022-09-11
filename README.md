@@ -106,9 +106,9 @@ Parameter | Default | Description
 `repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on). Set to -1 for infinite repeats.
 `cron`      | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
 `useConfig` | `true` | Use the values from the config file when Homebridge restarts. Set this to `false` to keep any changes to the parameters made in e.g. Eve or Controller for Homekit when Homebridge restarts.
-`heartbeat` | 15     | The time in seconds between polls in the plugin.
+`heartrate` | 15     | The time in seconds between polls in the plugin, see below.
 
-## Control values{#control-values}
+## Control values
 
 The plugin provides some control values that can be viewed and used in Eve and Controller for HomeKit. The control values can be used in conditions for automations and set in scenes. Each switch can be controlled individually and dynamically through these values, without restarting Homebridge. Note that numerical values in Eve are set using sliders, while Controller for Homekit gives options for manual input.
 

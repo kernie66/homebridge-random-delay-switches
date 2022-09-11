@@ -16,7 +16,7 @@ It is also possible to create a stateful switch, with or without the motion sens
 
 *(New in v1.2.0)* Increased the max delay to almost 10 days and added infinite repeats.  
 
-*(New in v1.2.1)* Added config parameter to select if config values or user changes will be used when Homebridge restarts for each switch.  
+*(New in v1.2.1)* Added config parameter to select if config values or user changes will be used when Homebridge restarts for each switch. For convenience, delay and minimum delay can be configured in the format `D:HH:MM:SS` for days, hours, minutes and seconds, or just (a lot of) seconds. 
 
 ## How to install
 
@@ -97,8 +97,8 @@ The possible configuration parameters are shown in the table below. I find them 
 
 Parameter | Default | Description
 ----------|---------|----------------
-`delay`   | 60      | (Maximum) delay in seconds, max value = 823999 (9 days, 23:59:59).
-`minDelay` | 1      | Minimum delay in seconds. Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
+`delay`   | 60      | (Maximum) delay in seconds, max value = 823999 (9 days, 23:59:59). Can also be given on the format `D:HH:MM:SS`, where D and HH are optional (e.g. 5:00 means 5 minutes = 300 seconds)
+`minDelay` | 1      | Minimum delay in seconds or `D:HH:MM:SS`. Only valid when `random` is `true`. Will be set to `delay` if greater than `delay`.
 `random`   | `false` | Enables random delays between `minDelay` and `delay` seconds (boolean).
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).

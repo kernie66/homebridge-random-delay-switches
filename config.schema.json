@@ -36,7 +36,7 @@
             "delay": 
             {
               "title": "Delay",
-              "description": "The delay in seconds or DD:HH:MM:SS after which the motion sensor is triggered.",
+              "description": "The delay in seconds or D:HH:MM:SS after which the motion sensor is triggered.",
               "type": "string",
               "default": "60",
               "required": true
@@ -46,7 +46,7 @@
               "title": "Minimum Delay",
               "type": "string",
               "default": "1",
-              "description": "The delay will be a random value from the minimum delay in seconds or DD:HH:MM:SS to the delay value above."
+              "description": "The delay will be a random value from the minimum delay in seconds or D:HH:MM:SS to the delay value above."
             },
             "random": 
             {

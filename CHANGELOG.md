@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.2
+
+### Bugs
+
+* Incorrect import caused plugin to not load.
+* Fixed log level settings (use Eve to access this)
+
+### Bump dependencies
+
+* NodeJS 16.17.1 LTS
+* homebridge-lib v5.6.8
+
 ## 1.2.1
 
 ### Enhancements

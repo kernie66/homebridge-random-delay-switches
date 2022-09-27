@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.3
+
+### Enhancements
+
+- Changed time left logic to use timestamp
+- Moved some log outputs to debug outputs for cleaner log
+
 ## 1.2.2
 
 ### Bugs

@@ -4,36 +4,36 @@
   "headerDisplay": "Delay switch platform for Homebridge, with or without a random delay",
   "footerDisplay": "For more information see the [README](https://github.com/kernie66/homebridge-delay-switches#readme)",
   "singular": true,
-  "schema": 
+  "schema":
   {
     "type": "object",
-    "properties": 
+    "properties":
     {
-      "name": 
+      "name":
       {
         "description": "Plugin name as displayed in the homebridge log.",
         "type": "string",
         "required": true,
         "default": "RandomDelaySwitches"
       },
-      "delaySwitches": 
+      "delaySwitches":
       {
         "title": "Delay switches",
         "notitle": true,
         "type": "array",
-        "items": 
+        "items":
         {
           "type": "object",
-          "properties": 
+          "properties":
           {
-            "name": 
+            "name":
             {
               "title": "Delay Switch Name",
               "description": "Name of the switch and the motion sensor.",
               "type": "string",
               "required": true
             },
-            "delay": 
+            "delay":
             {
               "title": "Delay",
               "description": "The delay in seconds or D:HH:MM:SS after which the motion sensor is triggered.",
@@ -41,32 +41,32 @@
               "default": "60",
               "required": true
             },
-            "minDelay": 
+            "minDelay":
             {
               "title": "Minimum Delay",
               "type": "string",
               "default": "1",
               "description": "The delay will be a random value from the minimum delay in seconds or D:HH:MM:SS to the delay value above."
             },
-            "random": 
+            "random":
             {
               "title": "Random Delay",
               "type": "boolean",
               "default": false
             },
-            "useConfig": 
+            "useConfig":
             {
               "title": "Restore Configuration at Restart",
               "type": "boolean",
               "default": true
             },
-            "disableSensor": 
+            "disableSensor":
             {
               "title": "Disable Motion Sensor",
               "type": "boolean",
               "default": false
             },
-            "startOnReboot": 
+            "startOnReboot":
             {
               "title": "Turn On Switch When Homebridge Restarts",
               "type": "boolean",
@@ -80,12 +80,18 @@
               "default": false,
               "required": false
             },
-            "repeats": 
+            "repeats":
             {
               "title": "Repetitions",
               "type": "integer",
               "default": 0,
-              "description": "The number of times the delay switch is activated after the first activation (0 - 10, -1 for infinite repeats)."
+              "description": "The number of times the delay switch is activated after the first activation (0 - 10)."
+            },
+            "infiniteRepeats":
+            {
+              "title": "Infinite Repeats",
+              "type": "boolean",
+              "default": false
             },
             "cronString":
             {
@@ -115,7 +121,7 @@
           "type": "flex",
           "flex-flow": "column",
           "items": ["name"]
-        }	
+        }
       ]
     },
     {
@@ -165,6 +171,7 @@
                     "delaySwitches[].startOnReboot",
                     "delaySwitches[].singleActivation",
                     "delaySwitches[].repeats",
+                    "delaySwitches[].infiniteRepeats",
                     "delaySwitches[].cronString",
                     "delaySwitches[].heartrate"
                   ]

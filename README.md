@@ -6,17 +6,17 @@
 
 With this plugin, you can create any number of fake switches that will start a timer, which can be a random duration too (between two configured values), when turned ON. When the delay time is reached the switch will automatically turn OFF and trigger a dedicated motion sensor for 3 seconds. This can be very useful for advanced automation with HomeKit scenes - when delayed actions are required.
 
-The random duration is very useful if you want an automation which simulates your presence at home by switching the lights at a random time. This looks more realisitic than a statically configured on/off-time. 
+The random duration is very useful if you want an automation which simulates your presence at home by switching the lights at a random time. This looks more realisitic than a statically configured on/off-time.
 
 By using the minimum delay, you can make sure that there is a delay for at least the minimum time. This is useful for temporary switching on a light, e.g. when a camera or sensor detects motion.
 
 It is also possible to create a stateful switch, with or without the motion sensor, which stays in the current state until commanded to the other state.
 
-*(New in v1.1.0)* The switches can be scheduled to turn on automatically by using a **cron** syntax. The delay will start at the scheduled times, which can be useful to trigger other advanced automations, e.g. to check the state of a sensor during specific times or dates.  
+*(New in v1.1.0)* The switches can be scheduled to turn on automatically by using a **cron** syntax. The delay will start at the scheduled times, which can be useful to trigger other advanced automations, e.g. to check the state of a sensor during specific times or dates.
 
-*(New in v1.2.0)* Increased the max delay to almost 10 days and added infinite repeats.  
+*(New in v1.2.0)* Increased the max delay to almost 10 days and added infinite repeats.
 
-*(New in v1.2.1)* Added config parameter to select if config values or user changes will be used when Homebridge restarts for each switch. For convenience, delay and minimum delay can be configured in the format `D:HH:MM:SS` for days, hours, minutes and seconds, or just (a lot of) seconds. 
+*(New in v1.2.1)* Added config parameter to select if config values or user changes will be used when Homebridge restarts for each switch. For convenience, delay and minimum delay can be configured in the format `D:HH:MM:SS` for days, hours, minutes and seconds, or just (a lot of) seconds.
 
 ## How to install
 
@@ -103,7 +103,8 @@ Parameter | Default | Description
 `disableSensor`| `false` | Disables the motion sensor, i.e. only the switch will be available in HomeKit (boolean).
 `startOnReboot` | `false` | Enables the delay switch when the plugin is restarted. Can be used e.g. to turn things on after power outage. Hint: Combine with a time of day condition, so your lights don't turn on while you sleep (boolean).
 `singleActivation` | `false` | Disables the extension of the timer if the switch is activated repeatedly while on. Default is to restart the delay switch for each activation while on.
-`repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on). Set to -1 for infinite repeats.
+`repeats`   | 0      | The number of additional activations of the switch. Can be used to control different lights with several consecutive delays, see below (0 - 10, where 0 gives one activation of the switch, 1 gives two activations and so on). *Legacy, but still supported: Set to -1 for infinite repeats*.
+`infiniteRepeats` | `false` | Enables infinite repeats (boolean). This will automatically be set to `true` if `repeats` is set to -1.
 `cron`      | Empty | Schedules the switch activation with a cron syntax. Add several schedules by separating the cron strings with ";".
 `useConfig` | `true` | Use the values from the config file when Homebridge restarts. Set this to `false` to keep any changes to the parameters made in e.g. Eve or Controller for Homekit when Homebridge restarts.
 `heartrate` | 15     | The time in seconds between polls in the plugin, see below.
@@ -123,10 +124,11 @@ Delay time minimum (%) | Corresponds to the `minDelay` parameter, but given as a
 Random enabled | Corresponds to the `random` parameter.
 Repetition (current) | The current repetition count, only valid when the switch is active. The initial activation of the switch is 0. Can be used in automations to control different lights at different repetition cycles.
 Repetitions (total) | Corresponds to the `repeats` parameter. The switch will be turned Off during the motion activation, then turned On again for the number of repetition times.
+Infinite repeats | Enable this to get infinite repeats after the first activation.
 Restore default | Restores the configuration parameters to the default values from the configuration file.
 Time left of timer | The time left before the delay time is up. Decremented by the heartbeat value. Used to continue the delay after a restart, if the delay was active.
 Heartrate   | Internal heartbeat rate used e.g. to keep track of the time left of the timer. The heartbeat and the timers are not synced, so the time left may be off by up to the heartrate value. The default value of 15 s is recommended for most cases, unless the delay time is long. Corresponds to the `heartrate` parameter.
-Log Level   | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2. 
+Log Level   | Controls the amount of log entries in the Homebridge log. Set to 0 to only show warnings, if you feel your log is spammed. Default = 2.
 
 ## Advanced usage
 

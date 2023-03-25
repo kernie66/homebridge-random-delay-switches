@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.0
+
+### Enhancements
+
+- Moved *infinite repeats* setting to separate config parameter
+- Automatically sets the *infinite repeats* to true if `repeats` is -1, so current config is unaffected
+
+### Bump dependencies
+
+* NodeJS 18.15.0 LTS
+* homebridge-lib v6.3.12
+* cron v2.3.0
+* cronstrue v2.24.0
+* luxon v3.3.0
+
 ## 1.2.3
 
 ### Enhancements

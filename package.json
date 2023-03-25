@@ -20,7 +20,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "cron": "^2.3.0",
-    "cronstrue": "^2.23.0",
+    "cronstrue": "^2.24.0",
     "events": "^3.3.0",
     "homebridge-lib": "^6.3.12",
     "luxon": "^3.3.0"

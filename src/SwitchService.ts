@@ -3,20 +3,50 @@
 //
 // Homebridge plugin for random delay switches.
 
-'use strict';
+import AbortController from 'abort-controller';
+import { CronJob } from 'cron';
+import cronstrue from 'cronstrue';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
+import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
+import { DateTime } from 'luxon';
 
-const homebridgeLib = require('homebridge-lib');
-const AbortController = require('abort-controller');
-const CronJob = require('cron').CronJob;
-const cronstrue = require('cronstrue');
-const DateTime = require('luxon').DateTime;
-const RdsTypes = require('./RdsTypes');
-const getTimestamp = RdsTypes.getTimestamp;
-const wait = RdsTypes.wait;
-const toTime = RdsTypes.toTime;
-const toSeconds = RdsTypes.toSeconds;
+import { Time, toSeconds, toTime } from './utils/timeUtils.js';
 
-class SwitchService extends homebridgeLib.ServiceDelegate {
+dayjs.extend(localizedFormat);
+const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+type SwitchServiceValues = {
+  delay: string;
+  minDelay: string;
+  random: boolean;
+  disableSensor: boolean;
+  startOnReboot: boolean;
+  singleActivation: boolean;
+  repeats: number;
+  infiniteRepeats: boolean;
+  cronString: string;
+  heartrate: number;
+  useConfig: boolean;
+};
+
+class SwitchService extends ServiceDelegate<SwitchServiceValues> {
+  random: boolean;
+  repeats: number;
+  infiniteRepeats: boolean;
+  switchOn: boolean;
+  startOnReboot: boolean;
+  singleActivation: boolean;
+  cronString: string;
+  heartrate: number;
+  useConfig: boolean;
+  disableSensor: boolean;
+  rds: any;
+  timeout: number;
+  delay: number;
+  minDelay: number;
+  time: Time;
+
   constructor(switchAccessory, params = {}) {
     params.name = switchAccessory.name;
     params.Service = switchAccessory.Services.hap.Switch;
@@ -36,10 +66,11 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     this.rds = switchAccessory.rds;
     this.timeout = params.timeout;
 
-    let newDelay = switchAccessory.delay.split(':');
-    let delayValue = toSeconds(newDelay.reverse());
-    if (delayValue > 863999) {
-      delayValue = 863999;
+    this.debug('SwitchService constructor called at %s', date);
+
+    let delayValue = toSeconds(switchAccessory.delay);
+    if (delayValue > 863_999) {
+      delayValue = 863_999;
       this.warn('Too large delay time, reset to maximum allowed');
     }
     this.debug('Delay value: %s', delayValue);
@@ -48,13 +79,10 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     let minDelayValue = 1;
     this.debug('Min delay config: %s', switchAccessory.minDelay);
     if (switchAccessory.minDelay) {
-      let newMinDelay = switchAccessory.minDelay.split(':');
-      minDelayValue = toSeconds(newMinDelay.reverse());
-      if (minDelayValue > 863999) {
-        minDelayValue = 863999;
-        this.warn(
-          'Too large min delay time, reset to maximum allowed'
-        );
+      minDelayValue = toSeconds(switchAccessory.minDelay);
+      if (minDelayValue > 863_999) {
+        minDelayValue = 863_999;
+        this.warn('Too large min delay time, reset to maximum allowed');
       }
     }
     this.debug('Min delay value: %s', minDelayValue);
@@ -67,20 +95,17 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
       this.time.days,
       this.time.hours,
       this.time.minutes,
-      this.time.seconds
+      this.time.seconds,
     );
-    this.minDelayPercentage = (
-      (this.minDelay / this.delay) *
-      100
-    ).toFixed();
+    this.minDelayPercentage = ((this.minDelay / this.delay) * 100).toFixed();
     this.debug('Min delay = %d%', this.minDelayPercentage);
 
     this.addCharacteristicDelegate({
-      key: 'on',
       Characteristic: this.Characteristics.hap.On,
+      key: 'on',
       value: false,
     })
-      .on('didSet', (value) => {
+      .on('didSet', (value: boolean) => {
         this.switchOn = value;
         this.debug("Calling 'setOn' with value %s", this.switchOn);
         this.setOn(switchAccessory);
@@ -96,113 +121,97 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
       });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Delay,
       key: 'delay',
       value: this.delay,
-      Characteristic: this.rds.Characteristics.Delay,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.MinDelay,
       key: 'minDelay',
       value: this.minDelay,
-      Characteristic: this.rds.Characteristics.MinDelay,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.MinDelayPercentage,
       key: 'minDelayPercentage',
       value: this.minDelayPercentage,
-      Characteristic: this.rds.Characteristics.MinDelayPercentage,
     }).on('didSet', (value) => {
       this.values.minDelay = (this.values.delay * value) / 100;
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.DelayDays,
       key: 'delayDays',
       value: this.time.days,
-      Characteristic: this.rds.Characteristics.DelayDays,
     }).on('didSet', (value) => {
       this.values.delay =
-        value * 24 * 3600 +
-        this.values.delayHours * 3600 +
-        this.values.delayMinutes * 60 +
-        this.values.delaySeconds;
-      this.values.minDelay =
-        (this.values.delay * this.values.minDelayPercentage) / 100;
+        value * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
+      this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.DelayHours,
       key: 'delayHours',
       value: this.time.hours,
-      Characteristic: this.rds.Characteristics.DelayHours,
     }).on('didSet', (value) => {
       this.values.delay =
-        this.values.delayDays * 24 * 3600 +
-        value * 3600 +
-        this.values.delayMinutes * 60 +
-        this.values.delaySeconds;
-      this.values.minDelay =
-        (this.values.delay * this.values.minDelayPercentage) / 100;
+        this.values.delayDays * 24 * 3600 + value * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
+      this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.DelayMinutes,
       key: 'delayMinutes',
       value: this.time.minutes,
-      Characteristic: this.rds.Characteristics.DelayMinutes,
     }).on('didSet', (value) => {
       this.values.delay =
-        this.values.delayDays * 24 * 3600 +
-        this.values.delayHours * 3600 +
-        value * 60 +
-        this.values.delaySeconds;
-      this.values.minDelay =
-        (this.values.delay * this.values.minDelayPercentage) / 100;
+        this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + value * 60 + this.values.delaySeconds;
+      this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.DelaySeconds,
       key: 'delaySeconds',
       value: this.time.seconds,
-      Characteristic: this.rds.Characteristics.DelaySeconds,
     }).on('didSet', (value) => {
       this.values.delay =
-        this.values.delayDays * 24 * 3600 +
-        this.values.delayHours * 3600 +
-        this.values.delayMinutes * 60 +
-        value;
-      this.values.minDelay =
-        (this.values.delay * this.values.minDelayPercentage) / 100;
+        this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + value;
+      this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.TimeOut,
       key: 'timeout',
       value: 0,
-      Characteristic: this.rds.Characteristics.TimeOut,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.TimeLeft,
       key: 'timeLeft',
       silent: true,
-      Characteristic: this.rds.Characteristics.TimeLeft,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Timestamp,
       key: 'timestamp',
       silent: true,
-      Characteristic: this.rds.Characteristics.Timestamp,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Random,
       key: 'random',
       value: this.random,
-      Characteristic: this.rds.Characteristics.Random,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Repeats,
       key: 'repeats',
       props: {
         minValue: 0,
         maxValue: 10,
       },
       value: this.repeats,
-      Characteristic: this.rds.Characteristics.Repeats,
     }).on('didSet', (value) => {
       if (value === -1) {
         this.values.infiniteRepeats = true;
@@ -213,9 +222,9 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.InfiniteRepeats,
       key: 'infiniteRepeats',
       value: this.infiniteRepeats,
-      Characteristic: this.rds.Characteristics.InfiniteRepeats,
     });
 
     if (this.values.repeats === -1) {
@@ -225,6 +234,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     }
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Repetition,
       key: 'repetition',
       props: {
         format: this.rds.Formats.UINT32,
@@ -232,16 +242,15 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
         maxValue: 65535,
       },
       silent: true,
-      Characteristic: this.rds.Characteristics.Repetition,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Cron,
       key: 'cron',
       value: this.cronString,
-      Characteristic: this.rds.Characteristics.Cron,
     }).on('didSet', (value) => {
       this.stopCronJobs(this.cronJobs);
-      let schedule = this.getSchedule(value);
+      const schedule = this.getSchedule(value);
       if (schedule != 'Schedule disabled') {
         this.cronJobs = this.parseCron(value);
       }
@@ -249,33 +258,33 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.CronSchedule,
       key: 'cronSchedule',
       value: this.cronSchedule,
-      Characteristic: this.rds.Characteristics.CronSchedule,
     });
 
     this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.Default,
       key: 'setDefault',
       value: false,
-      Characteristic: this.rds.Characteristics.Default,
     }).on('didSet', () => {
       this.setConfigValues();
     });
 
     this.addCharacteristicDelegate({
-      key: 'heartrate',
       Characteristic: this.Characteristics.my.Heartrate,
+      key: 'heartrate',
       props: {
-        minValue: 1,
         maxValue: 300,
         minStep: 1,
+        minValue: 1,
       },
       value: this.heartrate,
     });
 
     this.addCharacteristicDelegate({
-      key: 'logLevel',
       Characteristic: this.Characteristics.my.LogLevel,
+      key: 'logLevel',
       value: switchAccessory.logLevel,
     });
 
@@ -293,7 +302,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     } else if (this.cronString) {
       cronString = this.cronString;
     }
-    let schedule = this.getSchedule(cronString);
+    const schedule = this.getSchedule(cronString);
     if (schedule != 'Schedule disabled') {
       this.cronJobs = this.parseCron(cronString);
     }
@@ -325,10 +334,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     this.switchOn = true; // Set to enable restart of timer
     this.timeUp = true; // Set to not try to abort the abort controller
     // Check if time left is less than 5 seconds, then use 5 seconds
-    let delayValue = Math.max(
-      this.values.timestamp - getTimestamp(),
-      5
-    );
+    const delayValue = Math.max(this.values.timestamp - getTimestamp(), 5);
     this.log('Delay time left = %d', delayValue);
     this.setOn(switchAccessory, delayValue);
   }
@@ -340,10 +346,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     this.values.delayMinutes = this.time.minutes;
     this.values.delaySeconds = this.time.seconds;
     this.values.minDelay = this.minDelay;
-    this.values.minDelayPercentage = (
-      (this.minDelay / this.delay) *
-      100
-    ).toFixed();
+    this.values.minDelayPercentage = ((this.minDelay / this.delay) * 100).toFixed();
     this.values.random = this.random;
     this.values.infiniteRepeats = this.infiniteRepeats;
     this.values.repeats = this.repeats;
@@ -358,11 +361,11 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
     if (cronString) {
       if (cronString.length >= 9) {
         try {
-          let scheduleArray = cronString.split(';');
+          const scheduleArray = cronString.split(';');
           let schedule = '';
           let prefix = '';
-          for (let i in scheduleArray) {
-            let nextSchedule = cronstrue.toString(scheduleArray[i], {
+          for (const i in scheduleArray) {
+            const nextSchedule = cronstrue.toString(scheduleArray[i], {
               use24HourTimeFormat: true,
             });
             this.log('Schedule: %s', nextSchedule);
@@ -370,15 +373,15 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
             prefix = '; ';
           }
           if (schedule.length > 64) {
-            schedule = schedule.replace(/second[s]?/g, 'sec');
-            schedule = schedule.replace(/minute[s]?/g, 'min');
+            schedule = schedule.replaceAll(/second[s]?/g, 'sec');
+            schedule = schedule.replaceAll(/minute[s]?/g, 'min');
             if (schedule.length > 64) {
-              schedule = schedule.substring(0, 62) + '>';
+              schedule = schedule.slice(0, 62) + '>';
             }
           }
           return schedule;
-        } catch (err) {
-          this.warn('Error while parsing cron string: %s', err);
+        } catch (error) {
+          this.warn('Error while parsing cron string: %s', error);
         }
       }
     }
@@ -386,10 +389,10 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
   }
 
   parseCron(cronString) {
-    let cronArray = cronString.split(';');
+    const cronArray = cronString.split(';');
     let cronJob;
-    let cronJobs = [];
-    for (let i in cronArray) {
+    const cronJobs = [];
+    for (const i in cronArray) {
       this.log('Cron job: %s', cronArray[i]);
       cronJob = this.runCronJob(cronArray[i]);
       cronJobs.push(cronJob);
@@ -401,17 +404,14 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
   stopCronJobs(cronJobs) {
     if (cronJobs.length) {
       this.log('CronJobs to stop: %d', cronJobs.length);
-      for (let i in cronJobs) {
+      for (const i in cronJobs) {
         try {
           cronJobs[i].stop();
           if (cronJobs[i].lastDate()) {
-            this.log(
-              'Stop cron job, last at %s',
-              cronJobs[i].lastDate()
-            );
+            this.log('Stop cron job, last at %s', cronJobs[i].lastDate());
           }
-        } catch (err) {
-          this.warn('Error stopping cron job: %s', err);
+        } catch (error) {
+          this.warn('Error stopping cron job: %s', error);
         }
       }
     } else {
@@ -428,20 +428,14 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
       });
       cronJob.start();
       this.log('Starting cron job');
-      let nextDates = cronJob.nextDates(5);
+      const nextDates = cronJob.nextDates(5);
       let word = 'Next';
-      for (let i in nextDates) {
-        this.log(
-          '%s at %s',
-          word,
-          nextDates[i].toLocaleString(
-            DateTime.DATETIME_MED_WITH_SECONDS
-          )
-        );
+      for (const i in nextDates) {
+        this.log('%s at %s', word, nextDates[i].toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS));
         word = 'Then';
       }
-    } catch (err) {
-      this.warn('Error staring cron job: %s', err);
+    } catch (error) {
+      this.warn('Error staring cron job: %s', error);
     }
     return cronJob;
   }
@@ -458,8 +452,8 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
         try {
           this.debug('Aborting the timer before time is up');
           this.ac.abort();
-        } catch (e) {
-          this.warn('Error when aborting timer: %s', e.message);
+        } catch (error) {
+          this.warn('Error when aborting timer: %s', error.message);
         }
         this.timeUp = true;
         this.timeLeft = 0;
@@ -472,8 +466,8 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
           this.log('Restarting/extending the timer...');
           this.ac.abort();
           await wait(500); // Wait for the abort to complete
-        } catch (e) {
-          this.warn('Error when restarting timer: %s', e.message);
+        } catch (error) {
+          this.warn('Error when restarting timer: %s', error.message);
         }
         this.timeUp = true;
         this.timeLeft = 0;
@@ -491,10 +485,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
         // Set the delay time and type
         if (this.values.random) {
           this.values.timeout = Math.floor(
-            this.values.minDelay +
-              Math.random() *
-                (this.values.delay - this.values.minDelay) +
-              1
+            this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay) + 1,
           );
           delayType = 'random';
         } else if (!this.values.delay) {
@@ -507,11 +498,7 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
       }
       // Set the Unix timestamp for the end of the delay
       this.values.timestamp = getTimestamp() + this.values.timeout;
-      this.log(
-        'Starting the timer with %s delay: %d s',
-        delayType,
-        this.values.timeout
-      );
+      this.log('Starting the timer with %s delay: %d s', delayType, this.values.timeout);
       this.timeUp = false;
       this.values.timeLeft = this.values.timeout;
       try {
@@ -531,28 +518,23 @@ class SwitchService extends homebridgeLib.ServiceDelegate {
           this.log('Triggering motion sensor');
           switchAccessory.emit('trigger', true);
         }
-        if (
-          this.values.repetition < this.values.repeats ||
-          this.values.infiniteRepeats
-        ) {
+        if (this.values.repetition < this.values.repeats || this.values.infiniteRepeats) {
           await wait(2000); // Wait for the motion to complete, 2 s
           this.values.repetition += 1;
           this.log(
             'Restart, repetition number: %d of %s',
             this.values.repetition,
-            this.values.infiniteRepeats
-              ? 'infinite'
-              : this.values.repeats
+            this.values.infiniteRepeats ? 'infinite' : this.values.repeats,
           );
           this.values.on = true;
         } else {
           this.values.repetition = 0;
         }
-      } catch (err) {
-        if (!err.message) {
+      } catch (error) {
+        if (!error.message) {
           this.log('The current timer was stopped');
         } else {
-          this.warn('The timer was aborted! %s', err.message);
+          this.warn('The timer was aborted! %s', error.message);
         }
         this.values.repetition = 0;
         this.timeUp = true;

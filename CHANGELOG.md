@@ -6,16 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Enhancements
 
-- Moved *infinite repeats* setting to separate config parameter
-- Automatically sets the *infinite repeats* to true if `repeats` is -1, so current config is unaffected
+- Moved _infinite repeats_ setting to separate config parameter
+- Automatically sets the _infinite repeats_ to true if `repeats` is -1, so current config is unaffected
 
 ### Bump dependencies
 
-* NodeJS 18.15.0 LTS
-* homebridge-lib v6.3.12
-* cron v2.3.0
-* cronstrue v2.24.0
-* luxon v3.3.0
+- NodeJS 18.15.0 LTS
+- homebridge-lib v6.3.12
+- cron v2.3.0
+- cronstrue v2.24.0
+- luxon v3.3.0
 
 ## 1.2.3
 
@@ -28,52 +28,52 @@ All notable changes to this project will be documented in this file.
 
 ### Bugs
 
-* Incorrect import caused plugin to not load.
-* Fixed log level settings (use Eve to access this)
+- Incorrect import caused plugin to not load.
+- Fixed log level settings (use Eve to access this)
 
 ### Bump dependencies
 
-* NodeJS 16.17.1 LTS
-* homebridge-lib v5.6.8
+- NodeJS 16.17.1 LTS
+- homebridge-lib v5.6.8
 
 ## 1.2.1
 
 ### Enhancements
 
-* Added config parameter to keep or restore updated parameters when Homebridge restarts.
-* Added possibility to use D:HH:MM:SS format for delays.
-* Added heartrate config parameter, and made it persistent over restarts (#11.3).
+- Added config parameter to keep or restore updated parameters when Homebridge restarts.
+- Added possibility to use D:HH:MM:SS format for delays.
+- Added heartrate config parameter, and made it persistent over restarts (#11.3).
 
 ### Bugs
 
-* Days were not included in delay calculations for HH, MM and SS (#11.1).
-* Stability improvements (may address #11.2)
+- Days were not included in delay calculations for HH, MM and SS (#11.1).
+- Stability improvements (may address #11.2)
 
 ### Bump dependencies
 
-* NodeJS v16.17.0 LTS
-* homebridge-lib v5.6.5
-* cron v2.1.0
-* luxon v3.0.3
+- NodeJS v16.17.0 LTS
+- homebridge-lib v5.6.5
+- cron v2.1.0
+- luxon v3.0.3
 
 ## 1.2.0
 
 ### Enhancements
 
-* Added infinite repetitions (set to -1) (#10).
-* Increased maximum delay time to almost 10 days (#10).
-* Added days delay control for EVE and Controller for Homekit.
-* Corrections due to changes in updated packages.
-* Added missing dependencies.
+- Added infinite repetitions (set to -1) (#10).
+- Increased maximum delay time to almost 10 days (#10).
+- Added days delay control for EVE and Controller for Homekit.
+- Corrections due to changes in updated packages.
+- Added missing dependencies.
 
 ### Bump dependencies
 
-* NodeJS v16.15.1 LTS
-* homebridge v1.5.0
-* homebridge-lib v5.6.1
-* cron v2.0.0
-* events v3.3.0
-* luxon v2.4.0
+- NodeJS v16.15.1 LTS
+- homebridge v1.5.0
+- homebridge-lib v5.6.1
+- cron v2.0.0
+- events v3.3.0
+- luxon v2.4.0
 
 ## 1.1.1
 

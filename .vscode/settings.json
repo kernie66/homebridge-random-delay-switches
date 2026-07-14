@@ -1,5 +1,38 @@
 {
-  "cSpell.words": [
-    "cronstrue"
-  ]
+  "autoHide.autoHidePanel": false,
+  "remote.extensionKind": {
+    "alefragnani.project-manager": ["workspace"]
+  },
+  "cSpell.words": ["rrate", "rtot", "selflearning", "Tellstick", "wavg", "wdir", "wgust"],
+  "js/ts.validate.enabled": false,
+  "files.eol": "\n",
+  "editor.rulers": [120],
+  "oxc.enable": true,
+  // "oxc.typeAware": true,
+  // "oxc.tsConfigPath": "./tsconfig.json",
+  "npm.scriptRunner": "vp",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  // "oxc.configPath": "./oxlint.config.ts",
+  "oxc.fmt.configPath": "./.oxfmtrc.jsonc",
+  "oxc.trace.server": "verbose",
+  "editor.formatOnSave": false,
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.format.oxc": "always",
+    "source.fixAll.oxc": "always"
+  },
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "terminal.integrated.scrollback": 50000
 }

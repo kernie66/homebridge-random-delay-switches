@@ -3,15 +3,38 @@
 //
 // Homebridge plugin for random delay switches.
 
-'use strict';
+import { AccessoryDelegate } from 'homebridge-lib/AccessoryDelegate';
 
-const homebridgeLib = require('homebridge-lib');
-const SwitchService = require('./SwitchService');
-const MotionService = require('./MotionService');
-const getTimestamp = require('./RdsTypes').getTimestamp;
+import RdsPlatform from './RdsPlatform.js';
+import { SwitchAccessoryParams } from './typings/SwitchTypes.js';
 
-class RdsAccessory extends homebridgeLib.AccessoryDelegate {
-  constructor(platform, params) {
+type RdsAccessoryValues = {
+  delay: number;
+  random: boolean;
+  minDelay: number;
+  disableSensor: boolean;
+  startOnReboot: boolean;
+  singleActivation: boolean;
+  repeats: number;
+  infiniteRepeats: boolean;
+  cronString?: string;
+  heartrate: number;
+  useConfig: boolean;
+};
+
+class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
+  delay: number;
+  random: boolean;
+  minDelay: number;
+  disableSensor: boolean;
+  startOnReboot: boolean;
+  singleActivation: boolean;
+  repeats: number;
+  infiniteRepeats: boolean;
+  cronString?: string;
+  heartrate: number;
+  useConfig: boolean;
+  constructor(platform: RdsPlatform, params: SwitchAccessoryParams) {
     super(platform, params);
     this.delay = params.delay;
     this.random = params.random || false;
@@ -30,22 +53,15 @@ class RdsAccessory extends homebridgeLib.AccessoryDelegate {
     this.switchService = new SwitchService(this, {
       primaryService: true,
     });
-    this.manageLogLevel(
-      this.switchService.characteristicDelegate('logLevel')
-    );
+    this.manageLogLevel(this.switchService.characteristicDelegate('logLevel'));
 
     if (!this.disableSensor) {
       this.motionService = new MotionService(this, {
         name: this.name,
       });
-      params.motionDelegate =
-        this.motionService.characteristicDelegate('motion');
-      params.lastMotionDelegate =
-        this.motionService.characteristicDelegate('lastActivation');
-      this.historyService = new homebridgeLib.ServiceDelegate.History(
-        this,
-        params
-      );
+      params.motionDelegate = this.motionService.characteristicDelegate('motion');
+      params.lastMotionDelegate = this.motionService.characteristicDelegate('lastActivation');
+      this.historyService = new homebridgeLib.ServiceDelegate.History(this, params);
     }
     this.debug('Accessory initialised');
     this.heartbeatEnabled = true;
@@ -66,12 +82,8 @@ class RdsAccessory extends homebridgeLib.AccessoryDelegate {
 
   async heartbeat(beat) {
     if (beat % this.switchService.values.heartrate === 0) {
-      if (
-        this.switchService.values.timestamp > 0 &&
-        this.switchService.switchOn
-      ) {
-        this.switchService.values.timeLeft =
-          this.switchService.values.timestamp - getTimestamp();
+      if (this.switchService.values.timestamp > 0 && this.switchService.switchOn) {
+        this.switchService.values.timeLeft = this.switchService.values.timestamp - getTimestamp();
       }
     }
   }

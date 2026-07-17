@@ -13,7 +13,7 @@ declare module 'homebridge-lib/Characteristic';
 // declare module 'homebridge-lib/ServiceDelegate/History';
 declare module 'homebridge-lib/CharacteristicDelegate';
 // declare module 'homebridge-lib/Platform';
-declare module 'homebridge-lib/OptionParser';
+// declare module 'homebridge-lib/OptionParser';
 // declare module 'homebridge-lib/CustomHomeKitTypes';
 declare module 'homebridge-lib/MyHomeKitTypes';
 

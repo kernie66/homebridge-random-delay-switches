@@ -11,14 +11,25 @@ import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 import { DateTime } from 'luxon';
 
+import RdsAccessory from './RdsAccessory.js';
+import RdsTypes from './RdsTypes.js';
+import { SwitchServiceParams } from './typings/SwitchTypes.js';
 import { Time, toSeconds, toTime } from './utils/timeUtils.js';
 
 dayjs.extend(localizedFormat);
 const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
 type SwitchServiceValues = {
+  on: boolean;
   delay: string;
   minDelay: string;
+  delayDays: number;
+  delayHours: number;
+  delayMinutes: number;
+  delaySeconds: number;
+  timeout: number;
+  timeLeft: number;
+  timestamp: number;
   random: boolean;
   disableSensor: boolean;
   startOnReboot: boolean;
@@ -30,7 +41,7 @@ type SwitchServiceValues = {
   useConfig: boolean;
 };
 
-class SwitchService extends ServiceDelegate<SwitchServiceValues> {
+export default class SwitchService extends ServiceDelegate<SwitchServiceValues> {
   random: boolean;
   repeats: number;
   infiniteRepeats: boolean;
@@ -41,13 +52,12 @@ class SwitchService extends ServiceDelegate<SwitchServiceValues> {
   heartrate: number;
   useConfig: boolean;
   disableSensor: boolean;
-  rds: any;
-  timeout: number;
+  rds: RdsTypes;
   delay: number;
   minDelay: number;
   time: Time;
 
-  constructor(switchAccessory, params = {}) {
+  constructor(switchAccessory: RdsAccessory, params: SwitchServiceParams) {
     params.name = switchAccessory.name;
     params.Service = switchAccessory.Services.hap.Switch;
     super(switchAccessory, params);
@@ -59,12 +69,11 @@ class SwitchService extends ServiceDelegate<SwitchServiceValues> {
     this.switchOn = switchAccessory.switchOn;
     this.startOnReboot = switchAccessory.startOnReboot;
     this.singleActivation = switchAccessory.singleActivation;
-    this.cronString = switchAccessory.cronString;
+    this.cronString = switchAccessory.cronString || '';
     this.heartrate = switchAccessory.heartrate;
     this.useConfig = switchAccessory.useConfig;
     this.disableSensor = switchAccessory.disableSensor;
     this.rds = switchAccessory.rds;
-    this.timeout = params.timeout;
 
     this.debug('SwitchService constructor called at %s', date);
 

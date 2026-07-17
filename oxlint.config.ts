@@ -4,11 +4,11 @@ import { defineConfig } from 'oxlint';
 export default defineConfig({
   extends: [nkzw],
   ignorePatterns: ['**/__tests__/*', '**/*config.ts', 'node_modules', 'dist'],
-  options: {
-    typeAware: true,
-    typeCheck: true,
-    // reportUnusedDisableDirectives: 'warn',
-  },
+  // options: {
+  //   typeAware: true,
+  //   typeCheck: true,
+  //   // reportUnusedDisableDirectives: 'warn',
+  // },
   rules: {
     //   'no-undef': 'error', // Ensure that all variables are defined before use to prevent runtime errors
     'prefer-default-export': 'warn', // Allow single named exports for better clarity and maintainability

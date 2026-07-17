@@ -1,17 +1,11 @@
-interface AccessoryParams {
-  category?: string;
-  firmware: string;
-  hardware?: string;
-  id: string;
-  logLevel?: number;
-  manufacturer: string;
-  model: string;
-  name: string;
-  software?: string;
-}
-
 declare module 'homebridge-lib/AccessoryDelegate' {
+  import type { Access, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
+
   import { Delegate } from 'homebridge-lib/Delegate';
+
+  import type { HapCharacteristics, HapServices } from './HapTypes.ts';
+
+  import { EveCharacteristics, EveServices } from './EveTypes.ts';
   import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
 
   /** Delegate of a HomeKit accessory.
@@ -25,6 +19,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
    * @abstract
    * @extends Delegate
    */
+
   class AccessoryDelegate<P, T> extends Delegate<P> implements AccessoryParams {
     // id: string;
     // name: string;
@@ -33,22 +28,20 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     readonly logLevel: number;
 
     readonly Accessory: object;
-    readonly Characteristic: object;
-    readonly Characteristics: object;
+    readonly Characteristic: {
+      Access: Access;
+      Formats: Formats;
+      Perms: Perms;
+      Units: Units;
+    };
+    readonly Characteristics: {
+      eve: EveCharacteristics;
+      hap: HapCharacteristics;
+      my: object;
+    };
     readonly Services: {
-      eve: {
-        TemperatureSensor: object;
-        HumiditySensor: object;
-        AirQualitySensor: object;
-      };
-      hap: {
-        Lightbulb: object;
-        Switch: object;
-        OccupancySensor: object;
-        TemperatureSensor: object;
-        HumiditySensor: object;
-        AirQualitySensor: object;
-      };
+      eve: EveServices;
+      hap: HapServices;
       my: {
         DeconzGateway: object;
         Resource: object;
@@ -57,7 +50,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     /** Create a new instance of a HomeKit accessory delegate.
      *
      * When the corresponding HomeKit accessory was restored from persistent
-     * storage, it is linked to the delegate. Otherwise a new accessory
+     * storage: object; it is linked to the delegate. Otherwise a new accessory
      * will be created, using the values from `params`.
      * @param {!Platform} platform - Reference to the corresponding platform
      * plugin instance.
@@ -204,3 +197,15 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   export { AccessoryDelegate };
 }
 */
+
+interface AccessoryParams {
+  category?: string;
+  firmware: string;
+  hardware?: string;
+  id: string;
+  logLevel?: number;
+  manufacturer: string;
+  model: string;
+  name: string;
+  software?: string;
+}

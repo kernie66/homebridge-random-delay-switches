@@ -5,5 +5,6 @@ import { SwitchConfigTypes } from './SwitchTypes.js';
 
 export interface ConfigJson {
   name: string;
-  delaySwitches: Array<SwitchConfigTypes>;
+  delaySwitches?: Array<SwitchConfigTypes>;
+  platform?: string;
 }

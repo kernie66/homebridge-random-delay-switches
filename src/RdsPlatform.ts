@@ -12,26 +12,36 @@ import { once } from 'node:events';
 import type { ConfigJson } from './typings/ConfigJsonTypes.js';
 
 import RdsAccessory from './RdsAccessory.js';
+import RdsTypes from './RdsTypes.js';
+import { SwitchConfigTypes } from './typings/SwitchTypes.js';
+import { handleError, handleErrorSync } from './utils/handleError.js';
 
-// const events = require('events');
-// const homebridgeLib = require('homebridge-lib');
-// const RdsAccessory = require('./RdsAccessory');
-// const RT = require('./RdsTypes');
-// const RdsTypes = RT.RdsTypes;
+let hap: API['hap'];
 
 class RdsPlatform extends Platform<RdsPlatform> {
   config: ConfigJson;
+  rds: RdsTypes;
+  switchAccessories!: {
+    [key: string]: RdsAccessory;
+  };
+  handleError: typeof handleError;
+  handleErrorSync: typeof handleErrorSync;
 
   constructor(log: Logging, configJson: ConfigJson, homebridge: API) {
     super(log, configJson, homebridge);
+    hap = homebridge.hap;
+
     this.once('heartbeat', this.init);
     this.config = {
       name: 'RandomDelaySwitches',
     };
-    const UUIDGen = homebridge.hap.uuid;
+    const UUIDGen = hap.uuid;
     this.rds = new RdsTypes(homebridge);
+    this.handleError = handleError;
+    this.handleErrorSync = handleErrorSync;
     this.debug('Characteristics: %s', this.rds.Characteristics);
 
+    // Set up config parser for platform entries, store result in this.config
     const mainOptionParser = new OptionParser(this.config, true);
     mainOptionParser
       .stringKey('name')
@@ -41,15 +51,18 @@ class RdsPlatform extends Platform<RdsPlatform> {
         throw new TypeError(`config.json: ${error}`);
       });
     try {
+      // Parse the platform config and validate required fields
       mainOptionParser.parse(configJson);
-      if (this.config.delaySwitches.length === 0) {
+
+      //
+      if (!this.config.delaySwitches?.length) {
         this.warn('config.json: no delay switches');
       }
       this.switchAccessories = {};
       const validSwitches = [];
       for (const i in this.config.delaySwitches) {
-        const delaySwitch = this.config.delaySwitches[i];
-        const config = {};
+        const delaySwitch: SwitchConfigTypes = this.config.delaySwitches[i];
+        const config: Partial<SwitchConfigTypes> = {};
         const switchOptionParser = new OptionParser(config, true);
         switchOptionParser
           .stringKey('name')
@@ -84,7 +97,12 @@ class RdsPlatform extends Platform<RdsPlatform> {
       }
       this.config.delaySwitches = validSwitches;
     } catch (error) {
-      this.fatal(error);
+      this.handleErrorSync({
+        header: 'Config Error',
+        error,
+        reason: 'Check the config file and restart Homebridge, the plugin aborts the initialization',
+      });
+      return;
     }
     this.debug('config: %j', this.config);
   }

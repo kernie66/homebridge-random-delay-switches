@@ -2,13 +2,14 @@
   "compilerOptions": {
     // "incremental": true, // Enables incremental compilation, build only the changed code
     "strict": true, // Enables all strict type-checking options (best practice)
-    "rootDir": "src", // Root directory of input files
-    "outDir": "dist", // Output directory for compiled files
+    "rootDir": "./src", // Root directory of input files
+    "outDir": "./dist", // Output directory for compiled files
     "allowJs": true, // Allows JavaScript files to be compiled alongside TypeScript files.
     "target": "es2022", // Specifies the ECMAScript target version
     "module": "nodenext", // Sets the module system to use (commonjs, nodenext, esnext)
     "moduleResolution": "nodenext",
     "lib": ["DOM", "ES2022"], // Specifies the library files to be included in the compilation.
+    "types": ["node"], // Specifies the type definitions to be included in the compilation.
     "sourceMap": true, // Generates source maps for debugging
     "skipLibCheck": true, // Skips type checking of declaration files
     "noUnusedParameters": false, // Do not allow unused parameters in functions.

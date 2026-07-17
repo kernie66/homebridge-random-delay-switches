@@ -4,9 +4,15 @@
 // Homebridge plugin for random delay switches.
 
 import { AccessoryDelegate } from 'homebridge-lib/AccessoryDelegate';
+import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
+import { History } from 'homebridge-lib/ServiceDelegate/History';
 
+import MotionService from './MotionService.js';
 import RdsPlatform from './RdsPlatform.js';
+import RdsTypes from './RdsTypes.js';
+import SwitchService from './SwitchService.js';
 import { SwitchAccessoryParams } from './typings/SwitchTypes.js';
+import { getTimestamp } from './utils/timeUtils.js';
 
 type RdsAccessoryValues = {
   delay: number;
@@ -22,7 +28,7 @@ type RdsAccessoryValues = {
   useConfig: boolean;
 };
 
-class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
+export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
   delay: number;
   random: boolean;
   minDelay: number;
@@ -32,8 +38,14 @@ class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
   repeats: number;
   infiniteRepeats: boolean;
   cronString?: string;
+  switchOn: boolean;
   heartrate: number;
   useConfig: boolean;
+  rds: RdsTypes;
+  switchService: SwitchService;
+  motionService?: MotionService;
+  historyService?: History;
+
   constructor(platform: RdsPlatform, params: SwitchAccessoryParams) {
     super(platform, params);
     this.delay = params.delay;
@@ -59,16 +71,17 @@ class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
       this.motionService = new MotionService(this, {
         name: this.name,
       });
-      params.motionDelegate = this.motionService.characteristicDelegate('motion');
-      params.lastMotionDelegate = this.motionService.characteristicDelegate('lastActivation');
-      this.historyService = new homebridgeLib.ServiceDelegate.History(this, params);
+      this.historyService = new ServiceDelegate.History(this, {
+        motionDelegate: this.motionService.characteristicDelegate('motion'),
+        lastMotionDelegate: this.motionService.characteristicDelegate('lastActivation'),
+      });
     }
     this.debug('Accessory initialised');
     this.heartbeatEnabled = true;
     setImmediate(() => {
       this.emit('initialised');
     });
-    this.on('heartbeat', async (beat) => {
+    this.on('heartbeat', async (beat: number): Promise<void> => {
       await this.heartbeat(beat);
     });
     this.on('shutdown', async () => {
@@ -80,7 +93,7 @@ class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
     this.debug('Nothing to do at shutdown');
   }
 
-  async heartbeat(beat) {
+  async heartbeat(beat: number) {
     if (beat % this.switchService.values.heartrate === 0) {
       if (this.switchService.values.timestamp > 0 && this.switchService.switchOn) {
         this.switchService.values.timeLeft = this.switchService.values.timestamp - getTimestamp();
@@ -88,5 +101,3 @@ class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
     }
   }
 }
-
-module.exports = RdsAccessory;

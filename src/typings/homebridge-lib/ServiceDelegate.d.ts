@@ -2,30 +2,36 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: Global types for homebridge-lib */
 
 declare module 'homebridge-lib/ServiceDelegate' {
+  import type { Formats, Perms, Units } from 'homebridge';
   import type { History } from 'homebridge-lib/ServiceDelegate/History';
 
   // import { History } from './History.js';
   import { Delegate } from 'homebridge-lib/Delegate';
 
+  import type { EveCharacteristics } from './EveTypes.ts';
+  import type { HapCharacteristics } from './HapTypes.ts';
+
   type CharacteristicType = {
-    [key: string]: {
-      Formats: unknown;
-      Perms: unknown;
-      Units: unknown;
-    };
+    // [key: string]: {
+    Formats: Formats;
+    Perms: Perms;
+    Units: Units;
+    // };
   };
 
   type CharacteristicsType = {
-    eve: {
-      [key: string]: unknown;
-    };
-    hap: {
-      [key: string]: unknown;
-      TemperatureDisplayUnits: {
-        CELSIUS: number;
-        FAHRENHEIT: number;
-      };
-    };
+    eve: EveCharacteristics;
+    // {
+    //   [key: string]: unknown;
+    // };
+    hap: HapCharacteristics;
+    // {
+    //   [key: string]: unknown;
+    //   TemperatureDisplayUnits: {
+    //     CELSIUS: number;
+    //     FAHRENHEIT: number;
+    //   };
+    // };
     my: {
       [key: string]: unknown;
     };

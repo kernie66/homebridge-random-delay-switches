@@ -45,6 +45,7 @@ export default defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   staged: {
-    '*': 'vp check --fix',
+    // '*': 'vp check --fix',
+    '*': 'vp fmt',
   },
 });

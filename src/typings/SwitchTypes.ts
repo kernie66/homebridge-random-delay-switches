@@ -1,5 +1,7 @@
 // Types for Switches
 
+import { Service } from 'homebridge';
+
 export interface SwitchConfigTypes {
   name: string;
   delay: number;
@@ -30,8 +32,28 @@ export interface SwitchAccessoryParams extends AccessoryParams {
 }
 
 export type SwitchServiceParams = {
-  lightbulb?: boolean;
   name?: string;
   primaryService?: boolean;
-  Service?: unknown;
+  Service?: Service;
+  // {
+  //   eve: {
+  //     TemperatureSensor: object;
+  //     HumiditySensor: object;
+  //     AirQualitySensor: object;
+  //   };
+  //   hap: HapServices;
+  //   //Service;
+  //   // {
+  //   //   Lightbulb: object;
+  //   //   Switch: object;
+  //   //   OccupancySensor: object;
+  //   //   TemperatureSensor: object;
+  //   //   HumiditySensor: object;
+  //   //   AirQualitySensor: object;
+  //   // };
+  //   my: {
+  //     DeconzGateway: object;
+  //     Resource: object;
+  //   };
+  // };
 };

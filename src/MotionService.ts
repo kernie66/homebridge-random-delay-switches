@@ -5,10 +5,18 @@
 
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 
+import RdsAccessory from './RdsAccessory.js';
+import { SwitchServiceParams } from './typings/SwitchTypes.js';
 import { wait } from './utils/timeUtils.js';
 
-export default class MotionService extends ServiceDelegate {
-  constructor(motionAccessory, params = {}) {
+type MotionServiceValues = {
+  motion: boolean;
+  lastActivation: Date;
+  statusFault: number;
+};
+
+export default class MotionService extends ServiceDelegate<MotionServiceValues> {
+  constructor(motionAccessory: RdsAccessory, params: SwitchServiceParams) {
     params.Service = motionAccessory.Services.hap.MotionSensor;
     super(motionAccessory, params);
     this.addCharacteristicDelegate({
@@ -25,12 +33,12 @@ export default class MotionService extends ServiceDelegate {
       key: 'statusFault',
       silent: true,
     });
-    motionAccessory.on('trigger', (value) => {
-      this.doMotion(value);
+    motionAccessory.on('trigger', async (value: boolean) => {
+      await this.doMotion(value);
     });
   }
 
-  async doMotion(value) {
+  async doMotion(value: boolean) {
     this.debug('Motion sensor got trigger with value: %s', value);
     this.values.motion = value;
     await wait(3000);

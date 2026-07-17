@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "pedantic": "warn"
+  },
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+    // "maxWarnings": 10
+  },
+  "rules": {
+    "eslint/no-unused-vars": "error"
+  }
+}

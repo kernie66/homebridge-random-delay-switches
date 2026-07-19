@@ -28,7 +28,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     readonly logLevel: number;
 
     readonly Accessory: {
-      Categories: Categories;
+      Categories: typeof Categories;
     };
     readonly Characteristic: {
       Access: Access;
@@ -177,7 +177,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
 }
 
 interface AccessoryParams {
-  category: Categories;
+  category: number;
   firmware: string;
   hardware?: string;
   id: string;

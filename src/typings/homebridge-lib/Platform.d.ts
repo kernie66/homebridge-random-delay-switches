@@ -2,7 +2,7 @@
 
 /** biome-ignore-all lint/suspicious/noExplicitAny: Use any initially */
 declare module 'homebridge-lib/Platform' {
-  import type { Access, API, Characteristic, Formats, HAP, Logging, Perms, Units } from 'homebridge';
+  import type { Access, API, Categories, Characteristic, Formats, HAP, Logging, Perms, Units } from 'homebridge';
   import type { PackageJson } from 'type-fest';
 
   import { Delegate } from 'homebridge-lib/Delegate';
@@ -38,6 +38,9 @@ declare module 'homebridge-lib/Platform' {
   class Platform<P> extends Delegate<P> {
     readonly logLevel: number;
 
+    readonly Accessory: {
+      Categories: typeof Categories;
+    };
     readonly Characteristic: {
       Access: Access;
       Formats: Formats;
@@ -72,27 +75,27 @@ declare module 'homebridge-lib/Platform' {
      */
     static loadPlatform(homebridge: API, packageJson: PackageJson, platformName: string, Platform: TdPlatform): void;
 
-    get Accessory(): {
-      Categories: Characteristic;
-    };
-    get Services(): {
-      eve: EveServices;
-      hap: HapServices;
-      my: {
-        DeconzGateway: object;
-        Resource: object;
-      };
-    };
-    get Characteristic(): {
-      Formats: Formats;
-      Perms: Perms;
-      Units: Units;
-    };
-    get Characteristics(): {
-      eve: EveCharacteristics;
-      hap: HapCharacteristics;
-      my: object;
-    };
+    // get Accessory(): {
+    //   Categories: Characteristic;
+    // };
+    // get Services(): {
+    //   eve: EveServices;
+    //   hap: HapServices;
+    //   my: {
+    //     DeconzGateway: object;
+    //     Resource: object;
+    //   };
+    // };
+    // get Characteristic(): {
+    //   Formats: Formats;
+    //   Perms: Perms;
+    //   Units: Units;
+    // };
+    // get Characteristics(): {
+    //   eve: EveCharacteristics;
+    //   hap: HapCharacteristics;
+    //   my: object;
+    // };
     /** Content of the plugin's package.json file.
      * @type {object}
      * @readonly

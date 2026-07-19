@@ -104,9 +104,11 @@ class RdsPlatform extends Platform<RdsPlatform> {
 
   async init() {
     const jobs = [];
+
     for (const delaySwitch of this.validSwitches) {
+      assert(is<SwitchConfigTypes>(delaySwitch));
       const switchParams: SwitchAccessoryParams = {
-        category: hap.Categories.SWITCH,
+        category: this.Accessory.Categories.SWITCH,
         cronString: delaySwitch.cronString,
         delay: delaySwitch.delay,
         disableSensor: delaySwitch.disableSensor,

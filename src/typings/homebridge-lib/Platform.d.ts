@@ -2,13 +2,16 @@
 
 /** biome-ignore-all lint/suspicious/noExplicitAny: Use any initially */
 declare module 'homebridge-lib/Platform' {
-  import type { API, Formats, HAP, Logging, Perms, Units } from 'homebridge';
+  import type { Access, API, Characteristic, Formats, HAP, Logging, Perms, Units } from 'homebridge';
   import type { PackageJson } from 'type-fest';
 
   import { Delegate } from 'homebridge-lib/Delegate';
 
   import type TdPlatform from '../../TdPlatform.ts';
   import type { ConfigJson } from '../ConfigJsonTypes.ts';
+
+  import { EveCharacteristics, EveServices } from './EveTypes.ts';
+  import { HapCharacteristics, HapServices } from './HapTypes.ts';
 
   /** Homebridge dynamic platform plugin.
    * <br>See {@link Platform}.
@@ -31,7 +34,30 @@ declare module 'homebridge-lib/Platform' {
    * @abstract
    * @extends Delegate
    */
+
   class Platform<P> extends Delegate<P> {
+    readonly logLevel: number;
+
+    readonly Characteristic: {
+      Access: Access;
+      Formats: Formats;
+      Perms: Perms;
+      Units: Units;
+    };
+    readonly Characteristics: {
+      eve: EveCharacteristics;
+      hap: HapCharacteristics;
+      my: object;
+    };
+    readonly Services: {
+      eve: EveServices;
+      hap: HapServices;
+      my: {
+        DeconzGateway: object;
+        Resource: object;
+      };
+    };
+
     /** Load the platform plugin.
      *
      * Called by Homebridge, through the plugin's `index.js`, when loading the
@@ -45,14 +71,28 @@ declare module 'homebridge-lib/Platform' {
      * @param {!Platform} Platform - The constructor of the platform plugin.
      */
     static loadPlatform(homebridge: API, packageJson: PackageJson, platformName: string, Platform: TdPlatform): void;
-    get Accessory(): object;
-    get Services(): object;
+
+    get Accessory(): {
+      Categories: Characteristic;
+    };
+    get Services(): {
+      eve: EveServices;
+      hap: HapServices;
+      my: {
+        DeconzGateway: object;
+        Resource: object;
+      };
+    };
     get Characteristic(): {
       Formats: Formats;
       Perms: Perms;
       Units: Units;
     };
-    get Characteristics(): API.hap.Characteristics;
+    get Characteristics(): {
+      eve: EveCharacteristics;
+      hap: HapCharacteristics;
+      my: object;
+    };
     /** Content of the plugin's package.json file.
      * @type {object}
      * @readonly

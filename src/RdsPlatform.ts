@@ -8,24 +8,26 @@ import type { API, Logging } from 'homebridge';
 import { OptionParser } from 'homebridge-lib/OptionParser';
 import { Platform } from 'homebridge-lib/Platform';
 import { once } from 'node:events';
+import { assert, is } from 'tsafe';
 
 import type { ConfigJson } from './typings/ConfigJsonTypes.js';
 
 import RdsAccessory from './RdsAccessory.js';
 import RdsTypes from './RdsTypes.js';
-import { SwitchConfigTypes } from './typings/SwitchTypes.js';
+import { SwitchAccessoryParams, SwitchConfigTypes } from './typings/SwitchTypes.js';
 import { handleError, handleErrorSync } from './utils/handleError.js';
 
 let hap: API['hap'];
 
 class RdsPlatform extends Platform<RdsPlatform> {
-  config: ConfigJson;
+  config: Partial<ConfigJson>;
   rds: RdsTypes;
   switchAccessories!: {
     [key: string]: RdsAccessory;
   };
   handleError: typeof handleError;
   handleErrorSync: typeof handleErrorSync;
+  validSwitches: Array<Partial<SwitchConfigTypes>>;
 
   constructor(log: Logging, configJson: ConfigJson, homebridge: API) {
     super(log, configJson, homebridge);
@@ -40,6 +42,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
     this.handleError = handleError;
     this.handleErrorSync = handleErrorSync;
     this.debug('Characteristics: %s', this.rds.Characteristics);
+    this.validSwitches = [];
 
     // Set up config parser for platform entries, store result in this.config
     const mainOptionParser = new OptionParser(this.config, true);
@@ -54,18 +57,13 @@ class RdsPlatform extends Platform<RdsPlatform> {
       // Parse the platform config and validate required fields
       mainOptionParser.parse(configJson);
 
-      //
-      if (!this.config.delaySwitches?.length) {
-        this.warn('config.json: no delay switches');
-      }
       this.switchAccessories = {};
-      const validSwitches = [];
-      for (const i in this.config.delaySwitches) {
-        const delaySwitch: SwitchConfigTypes = this.config.delaySwitches[i];
+      assert(is<Array<SwitchConfigTypes>>(this.config.delaySwitches));
+      this.validSwitches = this.config.delaySwitches.map((switchConfig, index) => {
         const config: Partial<SwitchConfigTypes> = {};
         const switchOptionParser = new OptionParser(config, true);
         switchOptionParser
-          .stringKey('name')
+          .stringKey('name', true)
           .stringKey('delay')
           .stringKey('minDelay')
           .boolKey('random')
@@ -78,12 +76,10 @@ class RdsPlatform extends Platform<RdsPlatform> {
           .intKey('heartrate', 1, 300)
           .boolKey('useConfig')
           .on('userInputError', (error: string) => {
-            throw new TypeError(`config.json: delaySwitches[${i}]: ${error}`);
+            throw new TypeError(`config.json: delaySwitches[${index}]: ${error}`);
           });
-        switchOptionParser.parse(delaySwitch);
-        if (config.name === null) {
-          config.name = `RndDly-${config.delay}s`;
-        }
+        switchOptionParser.parse(switchConfig);
+        assert(is<string>(config.name));
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
           config.infiniteRepeats = true;
@@ -93,9 +89,8 @@ class RdsPlatform extends Platform<RdsPlatform> {
         config.prefix = config.random ? 'Random ' : 'Fixed ';
         config.uuid = UUIDGen.generate(config.name);
         this.debug('Found switch: %s', config.name);
-        validSwitches.push(config);
-      }
-      this.config.delaySwitches = validSwitches;
+        return config;
+      });
     } catch (error) {
       this.handleErrorSync({
         header: 'Config Error',
@@ -109,9 +104,9 @@ class RdsPlatform extends Platform<RdsPlatform> {
 
   async init() {
     const jobs = [];
-    for (const delaySwitch of this.config.delaySwitches) {
-      const switchParams = {
-        category: this.Accessory.Categories.Switch,
+    for (const delaySwitch of this.validSwitches) {
+      const switchParams: SwitchAccessoryParams = {
+        category: hap.Categories.SWITCH,
         cronString: delaySwitch.cronString,
         delay: delaySwitch.delay,
         disableSensor: delaySwitch.disableSensor,

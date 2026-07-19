@@ -1,8 +1,11 @@
 /** biome-ignore-all lint/style/useExportType: Export as in real file */
 declare module 'homebridge-lib/Delegate' {
+  import { Access, Categories, Formats, Perms, Units } from 'homebridge';
   import { EventEmitter } from 'node:events';
 
   import type TdPlatform from '../../TdPlatform.ts';
+  import type { EveCharacteristics, EveServices } from './EveTypes.ts';
+  import type { HapCharacteristics, HapServices } from './HapTypes.ts';
   /** Abstract superclass for {@link Platform}, {@link AccessoryDelegate},
    * {@link ServiceDelegate}, and {@link CharacteristicDelegate}.
    * <br>See {@link Delegate}.
@@ -23,6 +26,30 @@ declare module 'homebridge-lib/Delegate' {
     name: string;
     readonly platform: P;
     readonly logLevel: number;
+
+    readonly Accessory: {
+      Categories: Categories;
+    };
+    readonly Characteristic: {
+      Access: Access;
+      Formats: Formats;
+      Perms: Perms;
+      Units: Units;
+    };
+    readonly Characteristics: {
+      eve: EveCharacteristics;
+      hap: HapCharacteristics;
+      my: object;
+    };
+    readonly Services: {
+      eve: EveServices;
+      hap: HapServices;
+      my: {
+        DeconzGateway: object;
+        Resource: object;
+      };
+    };
+
     /** Create a new `Delegate` instance.
      * @abstract
      * @param {?Platform} platform - Reference to the corresponding platform
@@ -37,7 +64,9 @@ declare module 'homebridge-lib/Delegate' {
      * Valid HomeKit accessory categories.
      * @readonly
      */
-    get Accessory(): unknown;
+    get Accessory(): {
+      Categories: Categories;
+    };
     /** HomeKit characteristic property values.
      *
      * @type {object}

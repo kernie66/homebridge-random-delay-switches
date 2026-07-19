@@ -4,9 +4,9 @@ import { Service } from 'homebridge';
 
 export interface SwitchConfigTypes {
   name: string;
-  delay: number;
+  delay: string;
   random: boolean;
-  minDelay: number;
+  minDelay: string;
   disableSensor: boolean;
   startOnReboot: boolean;
   singleActivation: boolean;
@@ -15,12 +15,14 @@ export interface SwitchConfigTypes {
   cronString?: string;
   heartrate: number;
   useConfig: boolean;
+  prefix: string;
+  uuid: string;
 }
 
 export interface SwitchAccessoryParams extends AccessoryParams {
-  delay: number;
+  delay: string;
   random: boolean;
-  minDelay: number;
+  minDelay: string;
   disableSensor: boolean;
   startOnReboot: boolean;
   singleActivation: boolean;

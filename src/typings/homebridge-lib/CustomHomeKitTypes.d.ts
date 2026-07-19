@@ -88,7 +88,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
       props: {
         defaultValue?: string | number | boolean;
         description?: string;
-        format: Characteristic.Formats;
+        format: Formats;
         manufacturerDescription?: string;
         maxLen?: number;
         maxValue?: number;

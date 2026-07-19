@@ -1,5 +1,5 @@
 declare module 'homebridge-lib/AccessoryDelegate' {
-  import type { Access, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
+  import type { Access, Categories, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
 
   import { Delegate } from 'homebridge-lib/Delegate';
 
@@ -27,7 +27,9 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     platform: P;
     readonly logLevel: number;
 
-    readonly Accessory: object;
+    readonly Accessory: {
+      Categories: Categories;
+    };
     readonly Characteristic: {
       Access: Access;
       Formats: Formats;
@@ -173,33 +175,9 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   }
   export { AccessoryDelegate };
 }
-/*
-  class AccessoryDelegate extends Delegate {
-    id: string;
-    name: string;
-    category?: string;
-    manufacturer: string;
-    model: string;
-    hardware?: string;
-    software: string;
-    logLevel: number;
-    //    heartrate: number;
-    firmware: string;
-    serialNumber: string;
-    heartbeatEnabled: boolean;
-
-    manageLogLevel(delegate: unknown, forPlatform: boolean);
-    addPropertyDelegate: (params: { key: string; value?: unknown; silent?: boolean; unit?: string }) => void;
-
-    constructor(platform: TdPlatform, params = {});
-  }
-
-  export { AccessoryDelegate };
-}
-*/
 
 interface AccessoryParams {
-  category?: string;
+  category: Categories;
   firmware: string;
   hardware?: string;
   id: string;

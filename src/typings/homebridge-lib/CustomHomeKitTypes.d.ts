@@ -3,70 +3,60 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
   import type { Access, API, Characteristic, CharacteristicProps, Formats, Perms, Service, Units } from 'homebridge';
 
   class CustomHomeKitTypes<C = object, S = object> {
-    readonly Formats: typeof Formats;
-    /** Creates a new instance of `CustomHomeKitTypes`.
-     * @param {!API} homebridge - Homebridge API.
-     */
-    constructor(homebridge: API);
     /** Valid HomeKit admin-only access.
      * @type {Object<string, Characteristic.Access>}
      * @readonly
      */
-    get Access(): Access;
+    readonly Access: typeof Access;
+
     /** Valid HomeKit characteristic formats.
      * @type {Object<string, Format>}
      * @readonly
      */
-    // get Formats(): API.hap.Characteristic.Formats;
-    // get Formats(): Formats;
+    readonly Formats: typeof Formats;
+
     /** Valid HomeKit characteristic permissions.
      * @type {Object<string, Perm>}
      * @readonly
      */
-    get Perms(): Perms;
+    readonly Perms: typeof Perms;
+
     /** Standard HomeKit characteristic units.
      * @type {Object<string, Unit>}
      * @readonly
      */
-    get Units(): Units;
+    readonly Units: typeof Units;
+
     /** {@link Characteristic} subclasses for custom HomeKit characteristics.
      * @abstract
      * @type {Object.<string, Class>}
      * @readonly
      */
-    get Characteristics(): C;
-    // {
-    //   [key: string]: {
-    //     UUID: string;
-    //   };
-    // };
+    readonly Characteristics: C;
+
     /** {@link Service} subclasses for custom HomeKit services.
      * @abstract
      * @type {Object.<string, Class>}
      * @readonly
      */
-    get Services(): S;
-    // {
-    //   [key: string]: {
-    //     UUID: string;
-    //   };
-    // };
+    readonly Services: S;
+
     /** @link Characteristic} subclasses for standard HomeKit characteristics.
      * @type {Object<string, Class>}
      * @readonly
      */
-    get hapCharacteristics(): Characteristic;
-    // {
-    //   [key: string]: object;
-    // };
+    readonly hapCharacteristics: Characteristic;
+
     /** {@link Service} subclasses for custom HomeKit services.
      * @type {Object<string, Class>}
      * @readonly
      */
-    get hapServices(): object;
-    // {
-    //   [key: string]: object;
-    // };
+    readonly hapServices: Service;
+
+    /** Creates a new instance of `CustomHomeKitTypes`.
+     * @param {!API} homebridge - Homebridge API.
+     */
+    constructor(homebridge: API);
     /** Creates a new subclass of {@link Characteristic}
      * for a custom HomeKit characteristic.
      *
@@ -87,20 +77,6 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
       key: string,
       uuid: string,
       props: CharacteristicProps,
-      // {
-      //   defaultValue?: string | number | boolean;
-      //   description?: string;
-      //   format: Formats;
-      //   manufacturerDescription?: string;
-      //   maxLen?: number;
-      //   maxValue?: number;
-      //   minStep?: number;
-      //   minValue?: number;
-      //   perms: Array<Perms>;
-      //   unit?: Units;
-      //   validValueRanges?: Array<[number, number]>;
-      //   validValues?: Array<string | number | boolean>;
-      // },
       displayName?: string,
     ): {
       [key: string]: {

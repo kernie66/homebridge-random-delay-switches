@@ -4,8 +4,6 @@ declare module 'homebridge-lib/AccessoryDelegate' {
 
   import { CharacteristicProps } from 'homebridge';
 
-  import type { EveCharacteristics, EveServices } from './EveTypes.ts';
-  import type { HapCharacteristics, HapServices } from './HapTypes.ts';
   import type { HbLibCharacteristicsType, HbLibCharacteristicType, HbLibServicesType } from './HbLibTypes.ts';
   import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
 
@@ -24,8 +22,52 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   class AccessoryDelegate<P, T> extends Delegate<P> implements AccessoryParams {
     // id: string;
     // name: string;
+
+    /** Values of the HomeKit characteristics for the `AccessoryInformation` service.
+     *
+     * Contains the key of each property and of each characteristic in
+     * {@link ServiceDelegate.AccessoryInformation AccessoryInformation}.
+     * When the value is written, the value of the corresponding HomeKit
+     * characteristic is updated.
+     * @type {object}
+     */
     values: T;
+
+    // Only used to pass the platform to the delegate
     platform: P;
+
+    /** Plugin-specific context to be persisted across Homebridge restarts.
+     *
+     * After restart, this object is passed back to the plugin through the
+     * {@link Platform#event:accessoryRestored accessoryRestored} event.
+     * The plugin should store enough information to re-create the accessory
+     * delegate, after Homebridge has restored the accessory.
+     * @type {object}
+     */
+    readonly context: object;
+
+    /** Enable `heartbeat` events for this accessory delegate.
+     * @type {boolean}
+     */
+    heartbeatEnabled: boolean;
+
+    /** Current log level.
+     *
+     * The log level determines what type of messages are printed:
+     *
+     * 0. Print error and warning messages.
+     * 1. Print error, warning, and log messages.
+     * 2. Print error, warning, log, and debug messages.
+     * 3. Print error, warning, log, debug, and verbose debug messages.
+     *
+     * Note that debug messages (level 2 and 3) are only printed when
+     * Homebridge was started with the `-D` or `--debug` command line option.
+     *
+     * The log level is initialised at 2 when the accessory is newly created.
+     * It can be changed programmatically.
+     * The log level is persisted across Homebridge restarts.
+     * @type {!integer}
+     */
     readonly logLevel: number;
 
     readonly Accessory: {
@@ -100,51 +142,12 @@ declare module 'homebridge-lib/AccessoryDelegate' {
      * @returns {PropertyDelegate}
      */
     propertyDelegate(key: string): string | number | boolean;
-    /** Values of the HomeKit characteristics for the `AccessoryInformation` service.
-     *
-     * Contains the key of each property and of each characteristic in
-     * {@link ServiceDelegate.AccessoryInformation AccessoryInformation}.
-     * When the value is written, the value of the corresponding HomeKit
-     * characteristic is updated.
-     * @type {object}
-     */
     // get values(): T;
     // set values(values: {
     //   [key: string]: string | number | boolean;
     // });
-    /** Enable `heartbeat` events for this accessory delegate.
-     * @type {boolean}
-     */
-    get heartbeatEnabled(): boolean;
-    set heartbeatEnabled(value: boolean);
     setAlive(): void;
-    /** Plugin-specific context to be persisted across Homebridge restarts.
-     *
-     * After restart, this object is passed back to the plugin through the
-     * {@link Platform#event:accessoryRestored accessoryRestored} event.
-     * The plugin should store enough information to re-create the accessory
-     * delegate, after Homebridge has restored the accessory.
-     * @type {object}
-     */
-    get context(): unknown;
-    /** Current log level.
-     *
-     * The log level determines what type of messages are printed:
-     *
-     * 0. Print error and warning messages.
-     * 1. Print error, warning, and log messages.
-     * 2. Print error, warning, log, and debug messages.
-     * 3. Print error, warning, log, debug, and verbose debug messages.
-     *
-     * Note that debug messages (level 2 and 3) are only printed when
-     * Homebridge was started with the `-D` or `--debug` command line option.
-     *
-     * The log level is initialised at 2 when the accessory is newly created.
-     * It can be changed programmatically.
-     * The log level is persisted across Homebridge restarts.
-     * @type {!integer}
-     */
-    get logLevel(): number;
+
     /** Inherit `logLevel` from another accessory delegate.
      * @param {AccessoryDelegate} delegate - The delegate to inherit `logLevel`
      * from.
@@ -162,14 +165,29 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   export { AccessoryDelegate };
 }
 
+/** Parameters for the AccessoryDelegate constructor.
+ * @param {!object} params - Properties of the HomeKit accessory.
+ * @param {!string} params.id - The unique ID of the accessory, used to
+ * derive the HomeKit accessory UUID.<br>
+ * Must be unchangeable, preferably a serial number or mac address.
+ * @param {!string} params.name - The accessory name.<br>
+ * Also used to prefix log and error messages.
+ * @param {?string} params.category - The accessory category.
+ * @param {!string} params.manufacturer - The accessory manufacturer.
+ * @param {!string} params.model - The accessory model.
+ * @param {!string} params.firmware - The accessory firmware revision.
+ * @param {?string} params.hardware - The accessory hardware revision.
+ * @param {?string} params.software - The accessory software revision.
+ * @param {?integer} params.logLevel - The log level for the accessory
+ */
 interface AccessoryParams {
-  category: number;
-  firmware: string;
-  hardware?: string;
   id: string;
-  logLevel?: number;
+  name: string;
+  category?: number;
   manufacturer: string;
   model: string;
-  name: string;
+  firmware: string;
+  hardware?: string;
   software?: string;
+  logLevel?: number;
 }

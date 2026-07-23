@@ -3,15 +3,12 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: Use any initially */
 declare module 'homebridge-lib/Platform' {
   import type { Access, API, Categories, Characteristic, Formats, HAP, Logging, Perms, Units } from 'homebridge';
+  import type { Delegate } from 'homebridge-lib/Delegate';
   import type { PackageJson } from 'type-fest';
-
-  import { Delegate } from 'homebridge-lib/Delegate';
 
   import type TdPlatform from '../../TdPlatform.ts';
   import type { ConfigJson } from '../ConfigJsonTypes.ts';
-
-  import { EveCharacteristics, EveServices } from './EveTypes.ts';
-  import { HapCharacteristics, HapServices } from './HapTypes.ts';
+  import type { HbLibCharacteristicsType, HbLibCharacteristicType, HbLibServicesType } from './HbLibTypes.ts';
 
   /** Homebridge dynamic platform plugin.
    * <br>See {@link Platform}.
@@ -41,25 +38,15 @@ declare module 'homebridge-lib/Platform' {
     readonly Accessory: {
       Categories: typeof Categories;
     };
-    readonly Characteristic: {
-      Access: Access;
-      Formats: Formats;
-      Perms: Perms;
-      Units: Units;
-    };
-    readonly Characteristics: {
-      eve: EveCharacteristics;
-      hap: HapCharacteristics;
-      my: object;
-    };
-    readonly Services: {
-      eve: EveServices;
-      hap: HapServices;
-      my: {
-        DeconzGateway: object;
-        Resource: object;
-      };
-    };
+    readonly Characteristic: HbLibCharacteristicType;
+    readonly Characteristics: HbLibCharacteristicsType;
+    readonly Services: HbLibServicesType;
+
+    /** Content of the plugin's package.json file.
+     * @type {object}
+     * @readonly
+     */
+    readonly packageJson: PackageJson;
 
     /** Load the platform plugin.
      *
@@ -75,32 +62,6 @@ declare module 'homebridge-lib/Platform' {
      */
     static loadPlatform(homebridge: API, packageJson: PackageJson, platformName: string, Platform: TdPlatform): void;
 
-    // get Accessory(): {
-    //   Categories: Characteristic;
-    // };
-    // get Services(): {
-    //   eve: EveServices;
-    //   hap: HapServices;
-    //   my: {
-    //     DeconzGateway: object;
-    //     Resource: object;
-    //   };
-    // };
-    // get Characteristic(): {
-    //   Formats: Formats;
-    //   Perms: Perms;
-    //   Units: Units;
-    // };
-    // get Characteristics(): {
-    //   eve: EveCharacteristics;
-    //   hap: HapCharacteristics;
-    //   my: object;
-    // };
-    /** Content of the plugin's package.json file.
-     * @type {object}
-     * @readonly
-     */
-    get packageJson(): unknown;
     /** Create a new instance of the platform plugin.
      *
      * Called by Homebridge when initialising the plugin from `config.json`.

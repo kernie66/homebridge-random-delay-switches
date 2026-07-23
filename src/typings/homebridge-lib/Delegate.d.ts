@@ -1,12 +1,9 @@
-/** biome-ignore-all lint/style/useExportType: Export as in real file */
 declare module 'homebridge-lib/Delegate' {
   import type { Access, Categories, Formats, Perms, Units } from 'homebridge';
   import type { EventEmitter } from 'node:events';
 
   import type TdPlatform from '../../TdPlatform.ts';
-  import type { EveCharacteristics, EveServices } from './EveTypes.ts';
-  import type { HapCharacteristics, HapServices } from './HapTypes.ts';
-  import type { HbLibCharacteristicsType, HbLibCharacteristicType } from './HbLibTypes.ts';
+  import type { HbLibCharacteristicsType, HbLibCharacteristicType, HbLibServicesType } from './HbLibTypes.ts';
 
   /** Abstract superclass for {@link Platform}, {@link AccessoryDelegate},
    * {@link ServiceDelegate}, and {@link CharacteristicDelegate}.
@@ -25,79 +22,24 @@ declare module 'homebridge-lib/Delegate' {
    * @extends EventEmitter
    */
   class Delegate<P> extends EventEmitter {
+    /** The name used to prefix log and error messages.
+     * @type {string}
+     */
     name: string;
-    readonly platform: P;
-    readonly logLevel: number;
 
-    readonly Accessory: {
-      Categories: typeof Categories;
-    };
-    readonly Characteristic: HbLibCharacteristicType;
-    readonly Characteristics: HbLibCharacteristicsType;
-    readonly Services: {
-      eve: EveServices;
-      hap: HapServices;
-      my: {
-        DeconzGateway: object;
-        Resource: object;
-      };
-    };
+    /** The name prefix for log messages.
+     *  @type {string}
+     */
+    readonly _namePrefix: string;
 
-    /** Create a new `Delegate` instance.
-     * @abstract
-     * @param {?Platform} platform - Reference to the corresponding platform
-     * plugin instance.<br>
-     * Must be non-null, except for instances of `Platform`.
-     * @param {?string} name - The name used to prefix log and error messages.
-     */
-    constructor(platform: P, name: string);
-    /** HomeKit accessory property values.
-     * @type {object}
-     * @property {Object<string, Accessory.Category>} Categories -
-     * Valid HomeKit accessory categories.
-     * @readonly
-     */
-    get Accessory(): {
-      Categories: Categories;
-    };
-    /** HomeKit characteristic property values.
+    /** Reference to the corresponding platform plugin instance.
      *
-     * @type {object}
-     * @property {Object<string, Format>} Formats -
-     * Valid HomeKit characteristic formats.
-     * @property {Object<string, Perm>} Perms -
-     * Valid HomeKit characteristic permissions.
-     * @property {Object<string, Unit>} Units -
-     * Standard HomeKit characteristic units.
+     * For instances of `Platform`, it returns `this`.
+     * @type {!Platform}
      * @readonly
      */
-    get Characteristic(): unknown;
-    /** Subclasses of {@link Characteristic} for HomeKit characteristic types.
-     * @type {object}
-     * @property {Object<string, Class>} eve - Subclasses for custom HomeKit
-     * characteristic types used by Eve.
-     * <br>See {@link EveHomeKitTypes#Characteristics}.
-     * @property {Object<string, Class>} hap - Subclasses for standard HomeKit
-     * characteristic types.
-     * @property {Object<string, Class>} my - Subclasses for my custom HomeKit
-     * characteristic types.
-     * <br>See {@link MyHomeKitTypes#Characteristics}.
-     * @readonly
-     */
-    get Characteristics(): unknown;
-    /** Subclasses of {@link Service} for HomeKit service types.
-     * @type {object}
-     * @property {Object<string, Class>} eve - Subclasses for custom HomeKit
-     * service types used by Eve.
-     * <br>See {@link EveHomeKitTypes#Services}.
-     * @property {Object<string, Class>} hap - Subclasses for standard HomeKit
-     * service types.
-     * @property {Object<string, Class>} my - Subclasses for my custom HomeKit
-     * characteristic typess.
-     * <br>See {@link MyHomeKitTypes#Services}.
-     * @readonly
-     */
-    get Services(): unknown;
+    readonly platform: P;
+
     /** Current log level.
      *
      * The log level determines what type of messages are printed:
@@ -117,23 +59,68 @@ declare module 'homebridge-lib/Delegate' {
      * @type {!integer}
      * @readonly
      */
-    get logLevel(): number;
-    /** The name used to prefix log and error messages.
-     * @type {string}
-     */
-    get name(): string;
-    set name(name: string);
-    /** The name prefix for log messages.
-     *  @type {string}
-     */
-    get _namePrefix(): string;
-    /** Reference to the corresponding platform plugin instance.
-     *
-     * For instances of `Platform`, it returns `this`.
-     * @type {!Platform}
+    readonly logLevel: number;
+
+    /** HomeKit accessory property values.
+     * @type {object}
+     * @property {Object<string, Accessory.Category>} Categories -
+     * Valid HomeKit accessory categories.
      * @readonly
      */
-    get platform(): TdPlatform;
+    readonly Accessory: {
+      Categories: typeof Categories;
+    };
+
+    /** HomeKit characteristic property values.
+     *
+     * @type {object}
+     * @property {Object<string, Format>} Formats -
+     * Valid HomeKit characteristic formats.
+     * @property {Object<string, Perm>} Perms -
+     * Valid HomeKit characteristic permissions.
+     * @property {Object<string, Unit>} Units -
+     * Standard HomeKit characteristic units.
+     * @readonly
+     */
+    readonly Characteristic: HbLibCharacteristicType;
+
+    /** Subclasses of {@link Characteristic} for HomeKit characteristic types.
+     * @type {object}
+     * @property {Object<string, Class>} eve - Subclasses for custom HomeKit
+     * characteristic types used by Eve.
+     * <br>See {@link EveHomeKitTypes#Characteristics}.
+     * @property {Object<string, Class>} hap - Subclasses for standard HomeKit
+     * characteristic types.
+     * @property {Object<string, Class>} my - Subclasses for my custom HomeKit
+     * characteristic types.
+     * <br>See {@link MyHomeKitTypes#Characteristics}.
+     * @readonly
+     */
+    readonly Characteristics: HbLibCharacteristicsType;
+
+    /** Subclasses of {@link Service} for HomeKit service types.
+     * @type {object}
+     * @property {Object<string, Class>} eve - Subclasses for custom HomeKit
+     * service types used by Eve.
+     * <br>See {@link EveHomeKitTypes#Services}.
+     * @property {Object<string, Class>} hap - Subclasses for standard HomeKit
+     * service types.
+     * @property {Object<string, Class>} my - Subclasses for my custom HomeKit
+     * characteristic typess.
+     * <br>See {@link MyHomeKitTypes#Services}.
+     * @readonly
+     */
+    readonly Services: HbLibServicesType;
+
+    /** Create a new `Delegate` instance.
+     * @abstract
+     * @param {?Platform} platform - Reference to the corresponding platform
+     * plugin instance.<br>
+     * Must be non-null, except for instances of `Platform`.
+     * @param {?string} name - The name used to prefix log and error messages.
+     */
+    constructor(platform: P, name: string);
+
     /** Print a debug message to Homebridge standard output.
      * <br>The message is printed only, when the current log level >= 2 and when
      * Homebridge was started with the `-D` or `--debug` command line option.
@@ -192,34 +179,3 @@ declare module 'homebridge-lib/Delegate' {
   }
   export { Delegate };
 }
-/*
-  class Delegate extends EventEmitter {
-    Services: {
-      hap: {
-        Switch: () => void;
-        Lightbulb: () => void;
-        HumiditySensor: () => void;
-      };
-      my: {
-        Resource: () => void;
-        DeconzGateway: () => void;
-        LogLevel: () => number;
-      };
-      eve: {
-        TemperatureSensor: () => void;
-        HumiditySensor: () => void;
-      };
-    };
-
-    logLevel: number;
-    log: (message: string | Error, ...args: unknown[]) => void;
-    warn: (message: string, ...args: unknown[]) => void;
-    error: (message: string, ...args: unknown[]) => void;
-    fatal: (message: string, ...args: unknown[]) => void;
-    debug: (message: string, ...args: unknown[]) => void;
-    vdebug: (message: string, ...args: unknown[]) => void;
-
-    constructor(platform: TdPlatform, params = {});
-  }
-}
-*/

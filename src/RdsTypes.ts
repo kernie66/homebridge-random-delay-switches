@@ -30,8 +30,6 @@ function uuid(id: string, suffix = '-0000-1000-8000-656261617577') {
   return ('00000000' + id).slice(-8) + suffix;
 }
 
-let hap: API['hap'];
-
 type RdsCharacteristics = {
   Delay: Characteristic;
   MinDelay: Characteristic;
@@ -55,16 +53,15 @@ type RdsCharacteristics = {
 export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
   constructor(homebridge: API) {
     super(homebridge);
-    hap = homebridge.hap;
 
     this.createCharacteristicClass(
       'Delay',
       uuid('0A0'),
       {
-        format: hap.Formats.UINT32,
+        format: this.Formats.UINT32,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE, hap.Perms.HIDDEN],
-        unit: hap.Units.SECONDS,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE, this.Perms.HIDDEN],
+        unit: this.Units.SECONDS,
       },
       'Delay time',
     );
@@ -73,10 +70,10 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'MinDelay',
       uuid('0A1'),
       {
-        format: hap.Formats.UINT32,
+        format: this.Formats.UINT32,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE, hap.Perms.HIDDEN],
-        unit: hap.Units.SECONDS,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE, this.Perms.HIDDEN],
+        unit: this.Units.SECONDS,
       },
       'Delay time (minimum)',
     );
@@ -85,11 +82,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'TimeOut',
       uuid('0A2'),
       {
-        format: hap.Formats.UINT32,
+        format: this.Formats.UINT32,
         minValue: 0,
-        unit: hap.Units.SECONDS,
+        unit: this.Units.SECONDS,
         //      maxValue: 3600,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
       },
       'Current timeout value',
     );
@@ -98,10 +95,10 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Repeats',
       uuid('0A3'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 10,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Repetitions (total)',
     );
@@ -110,10 +107,10 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Repetition',
       uuid('0A4'),
       {
-        format: hap.Formats.UINT16,
+        format: this.Formats.UINT16,
         maxValue: 65_535,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
       },
       'Repetition (current)',
     );
@@ -122,10 +119,10 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'TimeLeft',
       uuid('0A5'),
       {
-        format: hap.Formats.UINT32,
+        format: this.Formats.UINT32,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY],
-        unit: hap.Units.SECONDS,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
+        unit: this.Units.SECONDS,
       },
       'Time left of timer',
     );
@@ -134,10 +131,10 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Timestamp',
       uuid('0A6'),
       {
-        format: hap.Formats.UINT32,
+        format: this.Formats.UINT32,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.HIDDEN],
-        unit: hap.Units.SECONDS,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.HIDDEN],
+        unit: this.Units.SECONDS,
       },
       'Unix timestamp',
     );
@@ -146,8 +143,8 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Random',
       uuid('0A9'),
       {
-        format: hap.Formats.BOOL,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        format: this.Formats.BOOL,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Random enabled',
     );
@@ -156,8 +153,8 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'InfiniteRepeats',
       uuid('0B2'),
       {
-        format: hap.Formats.BOOL,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        format: this.Formats.BOOL,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Infinite repeats',
     );
@@ -166,11 +163,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'DelayDays',
       uuid('0AE'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 9,
         minStep: 1,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Delay time (Days)',
     );
@@ -179,11 +176,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'DelayHours',
       uuid('0AA'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 23,
         minStep: 1,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Delay time (Hours)',
     );
@@ -192,11 +189,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'DelayMinutes',
       uuid('0AB'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 59,
         minStep: 1,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Delay time (Minutes)',
     );
@@ -205,11 +202,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'DelaySeconds',
       uuid('0AC'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 59,
         minStep: 1,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Delay time (Seconds)',
     );
@@ -218,11 +215,11 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'MinDelayPercentage',
       uuid('0AD'),
       {
-        format: hap.Formats.UINT8,
+        format: this.Formats.UINT8,
         maxValue: 100,
         minValue: 0,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
-        unit: hap.Units.PERCENTAGE,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
+        unit: this.Units.PERCENTAGE,
       },
       'Delay time minimum (%)',
     );
@@ -231,8 +228,8 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'CronSchedule',
       uuid('0B0'),
       {
-        format: hap.Formats.STRING,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY],
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
       },
       'Cron schedule',
     );
@@ -241,8 +238,8 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Cron',
       uuid('0B1'),
       {
-        format: hap.Formats.STRING,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Cron',
     );
@@ -251,8 +248,8 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       'Default',
       uuid('0AF'),
       {
-        format: hap.Formats.BOOL,
-        perms: [hap.Perms.PAIRED_READ, hap.Perms.NOTIFY, hap.Perms.PAIRED_WRITE],
+        format: this.Formats.BOOL,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
       'Restore default',
     );

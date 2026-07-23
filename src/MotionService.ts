@@ -5,8 +5,9 @@
 
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 
-import RdsAccessory from './RdsAccessory.js';
-import { SwitchServiceParams } from './typings/SwitchTypes.js';
+import type RdsAccessory from './RdsAccessory.js';
+import type { SwitchServiceParams } from './typings/SwitchTypes.js';
+
 import { wait } from './utils/timeUtils.js';
 
 type MotionServiceValues = {
@@ -15,7 +16,7 @@ type MotionServiceValues = {
   statusFault: number;
 };
 
-export default class MotionService extends ServiceDelegate<MotionServiceValues> {
+export default class MotionService extends ServiceDelegate<RdsAccessory['platform'], MotionServiceValues> {
   constructor(motionAccessory: RdsAccessory, params: SwitchServiceParams) {
     params.Service = motionAccessory.Services.hap.MotionSensor;
     super(motionAccessory, params);

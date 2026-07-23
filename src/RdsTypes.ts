@@ -3,7 +3,8 @@
 //
 // Custom HomeKit Characteristics.
 
-import { API } from 'homebridge';
+import type { API, Characteristic } from 'homebridge';
+
 import { CustomHomeKitTypes } from 'homebridge-lib/CustomHomeKitTypes';
 
 const regExps = {
@@ -31,7 +32,27 @@ function uuid(id: string, suffix = '-0000-1000-8000-656261617577') {
 
 let hap: API['hap'];
 
-export default class RdsTypes extends CustomHomeKitTypes {
+type RdsCharacteristics = {
+  Delay: Characteristic;
+  MinDelay: Characteristic;
+  TimeOut: Characteristic;
+  Repeats: Characteristic;
+  Repetition: Characteristic;
+  TimeLeft: Characteristic;
+  Timestamp: Characteristic;
+  Random: Characteristic;
+  InfiniteRepeats: Characteristic;
+  DelayDays: Characteristic;
+  DelayHours: Characteristic;
+  DelayMinutes: Characteristic;
+  DelaySeconds: Characteristic;
+  MinDelayPercentage: Characteristic;
+  CronSchedule: Characteristic;
+  Cron: Characteristic;
+  Default: Characteristic;
+};
+
+export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
   constructor(homebridge: API) {
     super(homebridge);
     hap = homebridge.hap;

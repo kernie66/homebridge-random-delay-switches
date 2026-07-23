@@ -1,6 +1,6 @@
 // Types for Switches
 
-import { Service } from 'homebridge';
+import type { Service } from 'homebridge';
 
 export interface SwitchConfigTypes {
   name: string;

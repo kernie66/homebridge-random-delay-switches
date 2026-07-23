@@ -3,7 +3,6 @@
 //
 // Homebridge plugin for random delay switches.
 
-import AbortController from 'abort-controller';
 import { CronJob } from 'cron';
 import cronstrue from 'cronstrue';
 import dayjs from 'dayjs';
@@ -11,18 +10,21 @@ import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 import { DateTime } from 'luxon';
 
-import RdsAccessory from './RdsAccessory.js';
-import RdsTypes from './RdsTypes.js';
-import { SwitchServiceParams } from './typings/SwitchTypes.js';
-import { Time, toSeconds, toTime } from './utils/timeUtils.js';
+import type RdsAccessory from './RdsAccessory.js';
+import type RdsTypes from './RdsTypes.js';
+import type { SwitchServiceParams } from './typings/SwitchTypes.js';
+import type { Time } from './utils/timeUtils.js';
+
+import { getTimestamp, toSeconds, toTime, wait } from './utils/timeUtils.js';
 
 dayjs.extend(localizedFormat);
 const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
 type SwitchServiceValues = {
   on: boolean;
-  delay: string;
-  minDelay: string;
+  delay: number;
+  minDelay: number;
+  minDelayPercentage: number;
   delayDays: number;
   delayHours: number;
   delayMinutes: number;
@@ -35,13 +37,17 @@ type SwitchServiceValues = {
   startOnReboot: boolean;
   singleActivation: boolean;
   repeats: number;
+  repetition: number;
   infiniteRepeats: boolean;
+  cron: string;
   cronString: string;
+  cronSchedule: string;
   heartrate: number;
   useConfig: boolean;
+  setDefault: boolean;
 };
 
-export default class SwitchService extends ServiceDelegate<SwitchServiceValues> {
+export default class SwitchService extends ServiceDelegate<RdsAccessory['platform'], SwitchServiceValues> {
   random: boolean;
   repeats: number;
   infiniteRepeats: boolean;
@@ -49,6 +55,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
   startOnReboot: boolean;
   singleActivation: boolean;
   cronString: string;
+  cronJobs: Array<CronJob | undefined>;
   heartrate: number;
   useConfig: boolean;
   disableSensor: boolean;
@@ -56,13 +63,16 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
   delay: number;
   minDelay: number;
   time: Time;
+  timeUp: boolean;
+  timeLeft: number;
+  minDelayPercentage: number;
+  ac: AbortController;
+  acSignal: AbortSignal;
 
   constructor(switchAccessory: RdsAccessory, params: SwitchServiceParams) {
     params.name = switchAccessory.name;
     params.Service = switchAccessory.Services.hap.Switch;
     super(switchAccessory, params);
-    // this.delay = switchAccessory.delay
-    // this.minDelay = switchAccessory.minDelay
     this.random = switchAccessory.random;
     this.repeats = switchAccessory.repeats;
     this.infiniteRepeats = switchAccessory.infiniteRepeats;
@@ -74,13 +84,18 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     this.useConfig = switchAccessory.useConfig;
     this.disableSensor = switchAccessory.disableSensor;
     this.rds = switchAccessory.rds;
+    this.timeUp = false;
+    this.timeLeft = 0;
+    this.ac = new AbortController();
+    this.acSignal = this.ac.signal;
 
     this.debug('SwitchService constructor called at %s', date);
 
+    // Convert delay and minDelay from strings to seconds
     let delayValue = toSeconds(switchAccessory.delay);
     if (delayValue > 863_999) {
       delayValue = 863_999;
-      this.warn('Too large delay time, reset to maximum allowed');
+      this.warn('Too large delay time, set to maximum allowed (10 days)');
     }
     this.debug('Delay value: %s', delayValue);
     this.delay = delayValue < 0 ? 0 : delayValue;
@@ -89,9 +104,9 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     this.debug('Min delay config: %s', switchAccessory.minDelay);
     if (switchAccessory.minDelay) {
       minDelayValue = toSeconds(switchAccessory.minDelay);
-      if (minDelayValue > 863_999) {
-        minDelayValue = 863_999;
-        this.warn('Too large min delay time, reset to maximum allowed');
+      if (minDelayValue > delayValue) {
+        minDelayValue = delayValue;
+        this.warn('Too large minimum delay time, set equal to delay time');
       }
     }
     this.debug('Min delay value: %s', minDelayValue);
@@ -106,7 +121,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       this.time.minutes,
       this.time.seconds,
     );
-    this.minDelayPercentage = ((this.minDelay / this.delay) * 100).toFixed();
+    this.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
     this.debug('Min delay = %d%', this.minDelayPercentage);
 
     this.addCharacteristicDelegate({
@@ -119,7 +134,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
         this.debug("Calling 'setOn' with value %s", this.switchOn);
         this.setOn(switchAccessory);
       })
-      .on('didTouch', (value) => {
+      .on('didTouch', (value: boolean) => {
         if (!this.singleActivation) {
           this.switchOn = value;
           this.debug("Repeat 'setOn' with value %s", this.switchOn);
@@ -145,7 +160,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.MinDelayPercentage,
       key: 'minDelayPercentage',
       value: this.minDelayPercentage,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       this.values.minDelay = (this.values.delay * value) / 100;
     });
 
@@ -153,7 +168,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.DelayDays,
       key: 'delayDays',
       value: this.time.days,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       this.values.delay =
         value * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -163,7 +178,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.DelayHours,
       key: 'delayHours',
       value: this.time.hours,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       this.values.delay =
         this.values.delayDays * 24 * 3600 + value * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -173,7 +188,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.DelayMinutes,
       key: 'delayMinutes',
       value: this.time.minutes,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       this.values.delay =
         this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + value * 60 + this.values.delaySeconds;
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -183,7 +198,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.DelaySeconds,
       key: 'delaySeconds',
       value: this.time.seconds,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       this.values.delay =
         this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + value;
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -221,7 +236,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
         maxValue: 10,
       },
       value: this.repeats,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: number) => {
       if (value === -1) {
         this.values.infiniteRepeats = true;
         wait(500);
@@ -257,7 +272,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       Characteristic: this.rds.Characteristics.Cron,
       key: 'cron',
       value: this.cronString,
-    }).on('didSet', (value) => {
+    }).on('didSet', (value: string) => {
       this.stopCronJobs(this.cronJobs);
       const schedule = this.getSchedule(value);
       if (schedule != 'Schedule disabled') {
@@ -337,7 +352,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     this.values.on = true;
   }
 
-  async continueSwitch(switchAccessory) {
+  async continueSwitch(switchAccessory: RdsAccessory) {
     await wait(1000);
     this.log('Switch was on at reboot');
     this.switchOn = true; // Set to enable restart of timer
@@ -355,7 +370,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     this.values.delayMinutes = this.time.minutes;
     this.values.delaySeconds = this.time.seconds;
     this.values.minDelay = this.minDelay;
-    this.values.minDelayPercentage = ((this.minDelay / this.delay) * 100).toFixed();
+    this.values.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
     this.values.random = this.random;
     this.values.infiniteRepeats = this.infiniteRepeats;
     this.values.repeats = this.repeats;
@@ -365,7 +380,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     this.values.setDefault = false;
   }
 
-  getSchedule(cronString) {
+  getSchedule(cronString: string) {
     // Check if it is a string with at least 5 values, 4 spaces
     if (cronString) {
       if (cronString.length >= 9) {
@@ -397,7 +412,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     return 'Schedule disabled';
   }
 
-  parseCron(cronString) {
+  parseCron(cronString: string) {
     const cronArray = cronString.split(';');
     let cronJob;
     const cronJobs = [];
@@ -410,7 +425,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     return cronJobs;
   }
 
-  stopCronJobs(cronJobs) {
+  stopCronJobs(cronJobs: Array<CronJob>) {
     if (cronJobs.length) {
       this.log('CronJobs to stop: %d', cronJobs.length);
       for (const i in cronJobs) {
@@ -428,7 +443,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     }
   }
 
-  runCronJob(cronString) {
+  runCronJob(cronString: string) {
     let cronJob;
     try {
       cronJob = new CronJob(cronString, () => {
@@ -449,7 +464,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
     return cronJob;
   }
 
-  async setOn(switchAccessory, delayValue) {
+  async setOn(switchAccessory: RdsAccessory, delayValue: number = 0) {
     // Add a delay so that values can be changed in scenes
     // before the switch is started
     await wait(100);
@@ -481,8 +496,6 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
         this.timeUp = true;
         this.timeLeft = 0;
       }
-      this.ac = new AbortController();
-      this.signal = this.ac.signal;
       // Check if this is a continued start after restart
       if (delayValue) {
         this.values.timeout = delayValue;
@@ -512,7 +525,7 @@ export default class SwitchService extends ServiceDelegate<SwitchServiceValues> 
       this.values.timeLeft = this.values.timeout;
       try {
         await wait(this.values.timeout * 1000, {
-          signal: this.signal,
+          signal: this.acSignal,
         });
         this.log('Time is up!');
         this.timeUp = true;

@@ -15,6 +15,7 @@ export default defineConfig({
     'perfectionist/sort-objects': 'off', // Disable sorting of object properties to maintain logical grouping and readability
     'perfectionist/sort-object-types': 'off', // Disable sorting of object properties to maintain logical grouping and readability
     'perfectionist/sort-interfaces': 'off', // Disable sorting of interface members to maintain logical grouping and readability
+    'typescript/consistent-type-imports': 'error',
     'unicorn/numeric-separators-style': [
       'error',
       {

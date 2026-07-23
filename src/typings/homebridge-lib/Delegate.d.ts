@@ -1,11 +1,13 @@
 /** biome-ignore-all lint/style/useExportType: Export as in real file */
 declare module 'homebridge-lib/Delegate' {
-  import { Access, Categories, Formats, Perms, Units } from 'homebridge';
-  import { EventEmitter } from 'node:events';
+  import type { Access, Categories, Formats, Perms, Units } from 'homebridge';
+  import type { EventEmitter } from 'node:events';
 
   import type TdPlatform from '../../TdPlatform.ts';
   import type { EveCharacteristics, EveServices } from './EveTypes.ts';
   import type { HapCharacteristics, HapServices } from './HapTypes.ts';
+  import type { HbLibCharacteristicsType, HbLibCharacteristicType } from './HbLibTypes.ts';
+
   /** Abstract superclass for {@link Platform}, {@link AccessoryDelegate},
    * {@link ServiceDelegate}, and {@link CharacteristicDelegate}.
    * <br>See {@link Delegate}.
@@ -22,25 +24,16 @@ declare module 'homebridge-lib/Delegate' {
    * @abstract
    * @extends EventEmitter
    */
-  class Delegate<P = unknown> extends EventEmitter {
+  class Delegate<P> extends EventEmitter {
     name: string;
     readonly platform: P;
     readonly logLevel: number;
 
     readonly Accessory: {
-      Categories: Categories;
+      Categories: typeof Categories;
     };
-    readonly Characteristic: {
-      Access: Access;
-      Formats: Formats;
-      Perms: Perms;
-      Units: Units;
-    };
-    readonly Characteristics: {
-      eve: EveCharacteristics;
-      hap: HapCharacteristics;
-      my: object;
-    };
+    readonly Characteristic: HbLibCharacteristicType;
+    readonly Characteristics: HbLibCharacteristicsType;
     readonly Services: {
       eve: EveServices;
       hap: HapServices;

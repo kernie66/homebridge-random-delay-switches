@@ -11,10 +11,10 @@ import { once } from 'node:events';
 import { assert, is } from 'tsafe';
 
 import type { ConfigJson } from './typings/ConfigJsonTypes.js';
+import type { SwitchAccessoryParams, SwitchConfigTypes } from './typings/SwitchTypes.js';
 
 import RdsAccessory from './RdsAccessory.js';
 import RdsTypes from './RdsTypes.js';
-import { SwitchAccessoryParams, SwitchConfigTypes } from './typings/SwitchTypes.js';
 import { handleError, handleErrorSync } from './utils/handleError.js';
 
 let hap: API['hap'];
@@ -25,8 +25,8 @@ class RdsPlatform extends Platform<RdsPlatform> {
   switchAccessories!: {
     [key: string]: RdsAccessory;
   };
-  handleError: typeof handleError;
-  handleErrorSync: typeof handleErrorSync;
+  handleError: typeof handleError<RdsPlatform>;
+  handleErrorSync: typeof handleErrorSync<RdsPlatform>;
   validSwitches: Array<Partial<SwitchConfigTypes>>;
 
   constructor(log: Logging, configJson: ConfigJson, homebridge: API) {
@@ -109,6 +109,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
       assert(is<SwitchConfigTypes>(delaySwitch));
       const switchParams: SwitchAccessoryParams = {
         category: this.Accessory.Categories.SWITCH,
+        firmware: '1.0.0',
         cronString: delaySwitch.cronString,
         delay: delaySwitch.delay,
         disableSensor: delaySwitch.disableSensor,
@@ -127,7 +128,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
       };
       const switchAccessory = new RdsAccessory(this, switchParams);
       jobs.push(once(switchAccessory, 'initialised'));
-      this.switchAccessories[delaySwitch] = switchAccessory;
+      this.switchAccessories[switchAccessory.name] = switchAccessory;
     }
     for (const job of jobs) {
       await job;

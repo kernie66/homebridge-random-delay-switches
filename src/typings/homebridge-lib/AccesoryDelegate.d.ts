@@ -1,11 +1,12 @@
 declare module 'homebridge-lib/AccessoryDelegate' {
   import type { Access, Categories, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
+  import type { Delegate } from 'homebridge-lib/Delegate';
 
-  import { Delegate } from 'homebridge-lib/Delegate';
+  import { CharacteristicProps } from 'homebridge';
 
+  import type { EveCharacteristics, EveServices } from './EveTypes.ts';
   import type { HapCharacteristics, HapServices } from './HapTypes.ts';
-
-  import { EveCharacteristics, EveServices } from './EveTypes.ts';
+  import type { HbLibCharacteristicsType, HbLibCharacteristicType, HbLibServicesType } from './HbLibTypes.ts';
   import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
 
   /** Delegate of a HomeKit accessory.
@@ -30,25 +31,9 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     readonly Accessory: {
       Categories: typeof Categories;
     };
-    readonly Characteristic: {
-      Access: Access;
-      Formats: Formats;
-      Perms: Perms;
-      Units: Units;
-    };
-    readonly Characteristics: {
-      eve: EveCharacteristics;
-      hap: HapCharacteristics;
-      my: object;
-    };
-    readonly Services: {
-      eve: EveServices;
-      hap: HapServices;
-      my: {
-        DeconzGateway: object;
-        Resource: object;
-      };
-    };
+    readonly Characteristic: HbLibCharacteristicType;
+    readonly Characteristics: HbLibCharacteristicsType;
+    readonly Services: HbLibServicesType;
     /** Create a new instance of a HomeKit accessory delegate.
      *
      * When the corresponding HomeKit accessory was restored from persistent
@@ -71,6 +56,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
      * @param {?integer} params.logLevel - The log level for the accessory
      */
     constructor(platform: P, params?: AccessoryParams);
+
     /** Destroy accessory delegate and associated HomeKit accessory.
      * @params {boolean} [delegateOnly=false] - Destroy the delegate, but keep the
      * associated HomeKit accessory (including context).

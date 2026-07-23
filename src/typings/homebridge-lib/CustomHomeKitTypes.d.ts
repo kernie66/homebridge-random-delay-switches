@@ -1,8 +1,9 @@
 /** biome-ignore-all lint/style/useExportType: homebridge-lib typings */
 declare module 'homebridge-lib/CustomHomeKitTypes' {
-  import type { Access, API, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
+  import type { Access, API, Characteristic, CharacteristicProps, Formats, Perms, Service, Units } from 'homebridge';
 
-  class CustomHomeKitTypes {
+  class CustomHomeKitTypes<C = object, S = object> {
+    readonly Formats: typeof Formats;
     /** Creates a new instance of `CustomHomeKitTypes`.
      * @param {!API} homebridge - Homebridge API.
      */
@@ -17,7 +18,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
      * @readonly
      */
     // get Formats(): API.hap.Characteristic.Formats;
-    get Formats(): Formats;
+    // get Formats(): Formats;
     /** Valid HomeKit characteristic permissions.
      * @type {Object<string, Perm>}
      * @readonly
@@ -33,7 +34,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
      * @type {Object.<string, Class>}
      * @readonly
      */
-    get Characteristics(): object;
+    get Characteristics(): C;
     // {
     //   [key: string]: {
     //     UUID: string;
@@ -44,7 +45,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
      * @type {Object.<string, Class>}
      * @readonly
      */
-    get Services(): object;
+    get Services(): S;
     // {
     //   [key: string]: {
     //     UUID: string;
@@ -85,20 +86,21 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
     createCharacteristicClass(
       key: string,
       uuid: string,
-      props: {
-        defaultValue?: string | number | boolean;
-        description?: string;
-        format: Formats;
-        manufacturerDescription?: string;
-        maxLen?: number;
-        maxValue?: number;
-        minStep?: number;
-        minValue?: number;
-        perms: Array<Perms>;
-        unit?: Units;
-        validValueRanges?: Array<[number, number]>;
-        validValues?: Array<string | number | boolean>;
-      },
+      props: CharacteristicProps,
+      // {
+      //   defaultValue?: string | number | boolean;
+      //   description?: string;
+      //   format: Formats;
+      //   manufacturerDescription?: string;
+      //   maxLen?: number;
+      //   maxValue?: number;
+      //   minStep?: number;
+      //   minValue?: number;
+      //   perms: Array<Perms>;
+      //   unit?: Units;
+      //   validValueRanges?: Array<[number, number]>;
+      //   validValues?: Array<string | number | boolean>;
+      // },
       displayName?: string,
     ): {
       [key: string]: {

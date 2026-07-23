@@ -2,7 +2,7 @@
 
 import type { Characteristic, Service } from 'homebridge';
 
-export type HapServices = {
+export interface HapServices {
   AccessCode: Service;
   AccessControl: Service;
   AccessoryInformation: Service;
@@ -76,7 +76,7 @@ export type HapServices = {
   WiFiTransport: Service;
   Window: Service;
   WindowCovering: Service;
-};
+}
 
 export type HapCharacteristics = {
   AccessCodeControlPoint: Characteristic;

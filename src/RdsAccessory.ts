@@ -3,15 +3,17 @@
 //
 // Homebridge plugin for random delay switches.
 
+import type { History } from 'homebridge-lib/ServiceDelegate/History';
+
 import { AccessoryDelegate } from 'homebridge-lib/AccessoryDelegate';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
-import { History } from 'homebridge-lib/ServiceDelegate/History';
+
+import type RdsPlatform from './RdsPlatform.js';
+import type RdsTypes from './RdsTypes.js';
+import type { SwitchAccessoryParams } from './typings/SwitchTypes.js';
 
 import MotionService from './MotionService.js';
-import RdsPlatform from './RdsPlatform.js';
-import RdsTypes from './RdsTypes.js';
 import SwitchService from './SwitchService.js';
-import { SwitchAccessoryParams } from './typings/SwitchTypes.js';
 import { getTimestamp } from './utils/timeUtils.js';
 
 type RdsAccessoryValues = {
@@ -29,9 +31,9 @@ type RdsAccessoryValues = {
 };
 
 export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
-  delay: number;
+  delay: string;
   random: boolean;
-  minDelay: number;
+  minDelay: string;
   disableSensor: boolean;
   startOnReboot: boolean;
   singleActivation: boolean;
@@ -50,7 +52,7 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
     super(platform, params);
     this.delay = params.delay;
     this.random = params.random || false;
-    this.minDelay = this.random ? params.minDelay : 0;
+    this.minDelay = this.random ? params.minDelay : '0';
     this.disableSensor = params.disableSensor || false;
     this.startOnReboot = params.startOnReboot || false;
     this.singleActivation = params.singleActivation || false;

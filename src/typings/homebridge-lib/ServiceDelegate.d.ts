@@ -2,57 +2,26 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: Global types for homebridge-lib */
 
 declare module 'homebridge-lib/ServiceDelegate' {
-  import type { Formats, Perms, Units } from 'homebridge';
+  import type { Access, Characteristic, CharacteristicProps } from 'homebridge';
+  import type { Delegate } from 'homebridge-lib/Delegate';
   import type { History } from 'homebridge-lib/ServiceDelegate/History';
 
-  // import { History } from './History.js';
-  import { Delegate } from 'homebridge-lib/Delegate';
+  import type { HbLibCharacteristicType, HbLibCharacteristicsType } from './HbLibTypes.ts';
 
-  import type { EveCharacteristics } from './EveTypes.ts';
-  import type { HapCharacteristics } from './HapTypes.ts';
-
-  type CharacteristicType = {
-    // [key: string]: {
-    Formats: Formats;
-    Perms: Perms;
-    Units: Units;
-    // };
-  };
-
-  type CharacteristicsType = {
-    eve: EveCharacteristics;
-    // {
-    //   [key: string]: unknown;
-    // };
-    hap: HapCharacteristics;
-    // {
-    //   [key: string]: unknown;
-    //   TemperatureDisplayUnits: {
-    //     CELSIUS: number;
-    //     FAHRENHEIT: number;
-    //   };
-    // };
-    my: {
-      [key: string]: unknown;
-    };
-  };
-
-  class ServiceDelegate<T> extends Delegate {
+  class ServiceDelegate<P, T> extends Delegate<P> {
     name: string;
     silent?: boolean;
-    values: T; // Record<string, boolean | number | string | Date | windDirection>;
-    Characteristic: CharacteristicType;
-    Characteristics: CharacteristicsType;
+    values: T;
+    readonly Characteristic: HbLibCharacteristicType;
+    readonly Characteristics: HbLibCharacteristicsType;
 
     static History: typeof History;
-    // History: History;
 
     addCharacteristicDelegate(params: {
-      Characteristic: unknown;
+      Characteristic: Characteristic;
       key: string;
-      props?: Record<string, unknown>;
+      props?: Partial<CharacteristicProps>;
       silent?: boolean;
-      unit?: string;
       value?: unknown;
     }): CharacteristicDelegate;
 

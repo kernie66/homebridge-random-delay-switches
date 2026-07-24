@@ -7,6 +7,55 @@ export type HbLibCharacteristicType = {
   Units: Units;
 };
 
+export type EveCharateristics = {
+  AirParticulateDensity: Characteristic;
+  AirPressure: Characteristic;
+  ClosedDuration: Characteristic;
+  Clouds: Characteristic;
+  ColorTemperature: Characteristic;
+  ColorTemperatureKelvin: Characteristic;
+  Condition: Characteristic;
+  ConditionCategory: Characteristic;
+  ConfigCommand: Characteristic;
+  ConfigData: Characteristic;
+  Consumption: Characteristic;
+  CurrentConsumption: Characteristic;
+  CurrentTemperature: Characteristic;
+  Day: Characteristic;
+  DewPoint: Characteristic;
+  Duration: Characteristic;
+  ElectricCurrent: Characteristic;
+  Elevation: Characteristic;
+  HistoryEntries: Characteristic;
+  HistoryRequest: Characteristic;
+  HistoryStatus: Characteristic;
+  LastActivation: Characteristic;
+  MaximumWindSpeed: Characteristic;
+  MinimumTemperature: Characteristic;
+  ObservationTime: Characteristic;
+  OpenDuration: Characteristic;
+  Ozone: Characteristic;
+  ProgramCommand: Characteristic;
+  ProgramData: Characteristic;
+  Rain: Characteristic;
+  Rain1h: Characteristic;
+  Rain24h: Characteristic;
+  RainProbability: Characteristic;
+  ResetTotal: Characteristic;
+  Sensitivity: Characteristic;
+  SetTime: Characteristic;
+  Snow: Characteristic;
+  TimesOpened: Characteristic;
+  TotalConsumption: Characteristic;
+  UvIndex: Characteristic;
+  ValvePosition: Characteristic;
+  Visibility: Characteristic;
+  VOCLevel: Characteristic;
+  Voltage: Characteristic;
+  WindDirection: Characteristic;
+  WindSpeed: Characteristic;
+};
+
 export type HbLibCharacteristicsType = {
   // Defined characteristics from Eve
   eve: {

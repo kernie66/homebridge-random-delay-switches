@@ -4,9 +4,9 @@
 // Homebridge plugin for random delay switches.
 
 import type { API } from 'homebridge';
+import type { PackageJson } from 'type-fest';
 
 import { createRequire } from 'node:module';
-import { PackageJson } from 'type-fest';
 
 import RdsPlatform from './RdsPlatform.js';
 

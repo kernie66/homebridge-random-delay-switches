@@ -3,8 +3,6 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   import type { Delegate } from 'homebridge-lib/Delegate';
 
   import { CharacteristicProps } from 'homebridge';
-
-  import type { HbLibCharacteristicsType, HbLibCharacteristicType, HbLibServicesType } from './HbLibTypes.ts';
   import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
 
   /** Delegate of a HomeKit accessory.
@@ -73,9 +71,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
     readonly Accessory: {
       Categories: typeof Categories;
     };
-    readonly Characteristic: HbLibCharacteristicType;
-    readonly Characteristics: HbLibCharacteristicsType;
-    readonly Services: HbLibServicesType;
+
     /** Create a new instance of a HomeKit accessory delegate.
      *
      * When the corresponding HomeKit accessory was restored from persistent

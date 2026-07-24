@@ -1,5 +1,5 @@
 declare module 'homebridge-lib/OptionParser' {
-  import { EventEmitter } from 'node:events';
+  import type { EventEmitter } from 'node:events';
   /** User input error.
    * @hideconstructor
    * @extends Error

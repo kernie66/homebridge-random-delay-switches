@@ -6,14 +6,12 @@ declare module 'homebridge-lib/ServiceDelegate' {
   import type { Delegate } from 'homebridge-lib/Delegate';
   import type { History } from 'homebridge-lib/ServiceDelegate/History';
 
-  import type { HbLibCharacteristicType, HbLibCharacteristicsType } from './HbLibTypes.ts';
+  import type { HbLibCharacteristicType } from './HbLibTypes.js';
 
   class ServiceDelegate<P, T> extends Delegate<P> {
     name: string;
     silent?: boolean;
     values: T;
-    readonly Characteristic: HbLibCharacteristicType;
-    readonly Characteristics: HbLibCharacteristicsType;
 
     static History: typeof History;
 

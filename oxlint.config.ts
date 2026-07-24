@@ -11,6 +11,7 @@ export default defineConfig({
   // },
   rules: {
     //   'no-undef': 'error', // Ensure that all variables are defined before use to prevent runtime errors
+    'eslint/no-unused-vars': ['error', { fix: { imports: 'safe-fix', variables: 'off' } }],
     'prefer-default-export': 'warn', // Allow single named exports for better clarity and maintainability
     'perfectionist/sort-objects': 'off', // Disable sorting of object properties to maintain logical grouping and readability
     'perfectionist/sort-object-types': 'off', // Disable sorting of object properties to maintain logical grouping and readability

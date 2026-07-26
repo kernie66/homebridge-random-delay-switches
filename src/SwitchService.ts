@@ -3,12 +3,13 @@
 //
 // Homebridge plugin for random delay switches.
 
-import { CronJob } from 'cron';
+import { CronJob, validateCronExpression } from 'cron';
 import cronstrue from 'cronstrue';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 import { DateTime } from 'luxon';
+import { assert, is } from 'tsafe';
 
 import type RdsAccessory from './RdsAccessory.js';
 import type RdsTypes from './RdsTypes.js';
@@ -414,25 +415,29 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
 
   parseCron(cronString: string) {
     const cronArray = cronString.split(';');
-    let cronJob;
+    let cronJob: CronJob;
     const cronJobs = [];
-    for (const i in cronArray) {
-      this.log('Cron job: %s', cronArray[i]);
-      cronJob = this.runCronJob(cronArray[i]);
-      cronJobs.push(cronJob);
+    for (const cron of cronArray) {
+      const cronValidation = validateCronExpression(cron);
+      if (cronValidation.valid) {
+        this.log('Cron job: %s', cron);
+        cronJob = this.runCronJob(cron);
+        cronJobs.push(cronJob);
+      }
     }
     this.log('CronJobs started: %d', cronJobs.length);
     return cronJobs;
   }
 
-  stopCronJobs(cronJobs: Array<CronJob>) {
-    if (cronJobs.length) {
+  stopCronJobs(cronJobs: Array<CronJob | undefined>) {
+    if (cronJobs?.length) {
       this.log('CronJobs to stop: %d', cronJobs.length);
-      for (const i in cronJobs) {
+      for (const cronJob of cronJobs) {
         try {
-          cronJobs[i].stop();
-          if (cronJobs[i].lastDate()) {
-            this.log('Stop cron job, last at %s', cronJobs[i].lastDate());
+          assert(is<CronJob>(cronJob));
+          cronJob.stop();
+          if (cronJob.lastDate()) {
+            this.log('Stop cron job, last at %s', cronJob.lastDate());
           }
         } catch (error) {
           this.warn('Error stopping cron job: %s', error);

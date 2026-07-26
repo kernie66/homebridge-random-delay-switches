@@ -1,10 +1,10 @@
 // Types for Config.json
 // This file defines the structure of the configuration JSON file for the Homebridge plugin.
 
-import type { SwitchConfigTypes } from './SwitchTypes.js';
+import type { SwitchConfigType } from './SwitchTypes.js';
 
 export interface ConfigJson {
   name: string;
-  delaySwitches: Array<SwitchConfigTypes>;
+  delaySwitches: SwitchConfigType[];
   platform: string;
 }

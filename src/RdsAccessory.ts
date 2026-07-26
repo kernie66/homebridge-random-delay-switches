@@ -39,7 +39,7 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
   singleActivation: boolean;
   repeats: number;
   infiniteRepeats: boolean;
-  cronString?: string;
+  cronArray: string[];
   switchOn: boolean;
   heartrate: number;
   useConfig: boolean;
@@ -58,7 +58,7 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
     this.singleActivation = params.singleActivation || false;
     this.repeats = params.repeats || 0;
     this.infiniteRepeats = params.infiniteRepeats || false;
-    this.cronString = params.cronString;
+    this.cronArray = params.cronArray;
     this.switchOn = this.startOnReboot;
     this.heartrate = params.heartrate || 15;
     this.useConfig = params.useConfig;

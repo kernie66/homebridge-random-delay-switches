@@ -2,7 +2,7 @@
 
 import type { Service } from 'homebridge';
 
-export interface SwitchConfigTypes {
+export interface SwitchConfigType {
   name: string;
   delay: string;
   random: boolean;
@@ -15,6 +15,10 @@ export interface SwitchConfigTypes {
   cronString?: string;
   heartrate: number;
   useConfig: boolean;
+}
+
+export interface SwitchSettingType extends Required<SwitchConfigType> {
+  cronArray: string[];
   prefix: string;
   uuid: string;
 }
@@ -28,7 +32,7 @@ export interface SwitchAccessoryParams extends AccessoryParams {
   singleActivation: boolean;
   repeats: number;
   infiniteRepeats: boolean;
-  cronString?: string;
+  cronArray: string[];
   heartrate: number;
   useConfig: boolean;
 }

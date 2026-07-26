@@ -2,7 +2,7 @@
 /** biome-ignore-all lint/complexity/noBannedTypes: Converted from Typescript Playground */
 
 declare module 'homebridge-lib/ServiceDelegate/History' {
-  import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
+  import type { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
   class History extends ServiceDelegate<null> {
     constructor(accessoryDelegate: unknown, params = {});
     addLastOnDelegate(onDelegate: CharacteristicDelegate, lastOnDelegate: CharacteristicDelegate): void;

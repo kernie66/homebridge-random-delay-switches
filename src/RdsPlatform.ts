@@ -5,16 +5,18 @@
 
 import type { API, Logging } from 'homebridge';
 
+import { validateCronExpression } from 'cron';
 import { OptionParser } from 'homebridge-lib/OptionParser';
 import { Platform } from 'homebridge-lib/Platform';
 import { once } from 'node:events';
 import { assert, is } from 'tsafe';
 
 import type { ConfigJson } from './typings/ConfigJsonTypes.js';
-import type { SwitchAccessoryParams, SwitchConfigTypes } from './typings/SwitchTypes.js';
+import type { SwitchAccessoryParams, SwitchConfigType, SwitchSettingType } from './typings/SwitchTypes.js';
 
 import RdsAccessory from './RdsAccessory.js';
 import RdsTypes from './RdsTypes.js';
+import { parseCronString } from './utils/cronUtils.js';
 import { handleError, handleErrorSync } from './utils/handleError.js';
 
 let hap: API['hap'];
@@ -27,7 +29,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
   };
   handleError: typeof handleError<RdsPlatform>;
   handleErrorSync: typeof handleErrorSync<RdsPlatform>;
-  validSwitches: Array<Partial<SwitchConfigTypes>>;
+  validSwitches: Array<Partial<SwitchConfigType>>;
 
   constructor(log: Logging, configJson: ConfigJson, homebridge: API) {
     super(log, configJson, homebridge);
@@ -58,9 +60,9 @@ class RdsPlatform extends Platform<RdsPlatform> {
       mainOptionParser.parse(configJson);
 
       this.switchAccessories = {};
-      assert(is<Array<SwitchConfigTypes>>(this.config.delaySwitches));
+      assert(is<SwitchConfigType[]>(this.config.delaySwitches));
       this.validSwitches = this.config.delaySwitches.map((switchConfig, index) => {
-        const config: Partial<SwitchConfigTypes> = {};
+        const config: Partial<SwitchConfigType> = { cronString: '' };
         const switchOptionParser = new OptionParser(config, true);
         switchOptionParser
           .stringKey('name', true)
@@ -79,17 +81,38 @@ class RdsPlatform extends Platform<RdsPlatform> {
             throw new TypeError(`config.json: delaySwitches[${index}]: ${error}`);
           });
         switchOptionParser.parse(switchConfig);
-        assert(is<string>(config.name));
+        const switchSettings: SwitchSettingType = config as SwitchSettingType;
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
-          config.infiniteRepeats = true;
-          config.repeats = 0;
-          this.log('Converting repeats = -1 to infiniteRepeats = true for', config.name);
+          switchSettings.infiniteRepeats = true;
+          switchSettings.repeats = 0;
+          this.log('Converting repeats = -1 to infiniteRepeats = true for', switchSettings.name);
         }
-        config.prefix = config.random ? 'Random ' : 'Fixed ';
-        config.uuid = UUIDGen.generate(config.name);
-        this.debug('Found switch: %s', config.name);
-        return config;
+        // Check if the cronString is valid and split it into an array of cron strings
+        switchSettings.cronArray = [];
+        try {
+          switchSettings.cronArray = parseCronString(switchSettings.cronString);
+        } catch (error) {
+          this.log('Error parsing cronString for', switchSettings.name, error);
+        }
+        if (switchSettings.cronString) {
+          const cronStrings = switchSettings.cronString.split(';');
+          if (cronStrings.length) {
+            for (const cronString of cronStrings) {
+              const cronValidation = validateCronExpression(cronString);
+              if (!cronValidation.valid) {
+                throw new TypeError(
+                  `config.json: delaySwitches[${index}]: cronString must be in the format '(second) minute hour * * *'`,
+                );
+              }
+              switchSettings.cronArray.push(cronString);
+            }
+          }
+        }
+        switchSettings.prefix = switchSettings.random ? 'Random ' : 'Fixed ';
+        switchSettings.uuid = UUIDGen.generate(switchSettings.name);
+        this.debug('Found switch: %s', switchSettings.name);
+        return switchSettings;
       });
     } catch (error) {
       this.handleErrorSync({
@@ -106,11 +129,11 @@ class RdsPlatform extends Platform<RdsPlatform> {
     const jobs = [];
 
     for (const delaySwitch of this.validSwitches) {
-      assert(is<SwitchConfigTypes>(delaySwitch));
+      assert(is<SwitchSettingType>(delaySwitch));
       const switchParams: SwitchAccessoryParams = {
         category: this.Accessory.Categories.SWITCH,
         firmware: '1.0.0',
-        cronString: delaySwitch.cronString,
+        cronArray: delaySwitch.cronArray || [],
         delay: delaySwitch.delay,
         disableSensor: delaySwitch.disableSensor,
         heartrate: delaySwitch.heartrate,

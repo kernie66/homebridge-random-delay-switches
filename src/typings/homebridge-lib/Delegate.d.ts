@@ -668,32 +668,32 @@ declare module 'homebridge-lib/Delegate' {
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    debug(format: string | Error, ...args: Array<unknown>): void;
+    debug(format: string | Error, ...args: unknown[]): void;
     /** Safely emit an event, catching unknown errors.
      * @param {!string} eventName - The name of the event.
      * @param {...string} args - Arguments to the event.
      */
-    emit(eventName: string, ...args: Array<unknown>): boolean;
+    emit(eventName: string, ...args: unknown[]): boolean;
     /** Print an error message to Homebridge standard error output.
      * @param {string|Error} format - The printf-style message or an instance of
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    error(format: string | Error, ...args: Array<unknown>): void;
+    error(format: string | Error, ...args: unknown[]): void;
     /** Print an error message to Homebridge standard error output and shutdown
      * Homebridge.
      * @param {string|Error} format - The printf-style message or an instance of
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    fatal(format: string | Error, ...args: Array<unknown>): void;
+    fatal(format: string | Error, ...args: unknown[]): void;
     /** Print a log message to Homebridge standard output.
      * <br>The message is printed only, when the current log level >= 1.
      * @param {string|Error} format - The printf-style message or an instance of
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    log(format: string | Error, ...args: Array<unknown>): void;
+    log(format: string | Error, ...args: unknown[]): void;
     /** Print a verbose debug message to Homebridge standard output.
      * <br>The message is printed only, when the current log level >= 3 and when
      * Homebridge was started with the `-D` or `--debug` command line option.
@@ -701,7 +701,7 @@ declare module 'homebridge-lib/Delegate' {
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    vdebug(format: string | Error, ...args: Array<unknown>): void;
+    vdebug(format: string | Error, ...args: unknown[]): void;
     /** Print a very verbose debug message to Homebridge standard output.
      * <br>The message is printed only, when the current log level >= 4 and when
      * Homebridge was started with the `-D` or `--debug` command line option.
@@ -709,13 +709,13 @@ declare module 'homebridge-lib/Delegate' {
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    vvdebug(format: string | Error, ...args: Array<unknown>): void;
+    vvdebug(format: string | Error, ...args: unknown[]): void;
     /** Print a warning message to Homebridge standard error output.
      * @param {string|Error} format - The printf-style message or an instance of
      * [Error](https://nodejs.org/dist/latest-v14.x/docs/api/errors.html#errors_class_error).
      * @param {...string} args - Arguments to the printf-style message.
      */
-    warn(format: string | Error, ...args: Array<unknown>): void;
+    warn(format: string | Error, ...args: unknown[]): void;
   }
   export { Delegate };
 }

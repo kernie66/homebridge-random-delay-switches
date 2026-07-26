@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/style/useExportType: Types for homebridge-lib */
 
 declare module 'homebridge-lib/HttpClient' {
-  import { EventEmitter } from 'node:events';
+  import type { EventEmitter } from 'node:events';
 
   class HttpClient extends EventEmitter {
     static get HttpError(): typeof HttpError;
@@ -21,7 +21,7 @@ declare module 'homebridge-lib/HttpClient' {
       port?: number;
       timeout?: number;
       url?: string;
-      validStatusCodes?: Array<number>;
+      validStatusCodes?: number[];
     });
     _setUrl(): void;
     /** Server IP address.

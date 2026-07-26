@@ -108,7 +108,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
         key: string;
         characteristic: string | number;
       }>,
-      OptionalCharacteristics?: Array<never>,
+      OptionalCharacteristics?: never[],
     ): {
       [key: string]: {
         UUID: string;

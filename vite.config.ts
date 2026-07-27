@@ -42,8 +42,7 @@ export default defineConfig({
         'error',
         {
           hexadecimal: { groupLength: 4 },
-          minimumDigits: 6,
-          onlyIfContainsSeparator: true,
+          number: { minimumDigits: 6 },
         },
       ],
     },

@@ -3,7 +3,7 @@ import { defineConfig } from 'oxlint';
 
 export default defineConfig({
   extends: [nkzw],
-  ignorePatterns: ['**/__tests__/*', '**/*config.ts', 'node_modules', 'dist'],
+  ignorePatterns: ['**/*config.ts', 'node_modules', 'dist'],
   // options: {
   //   typeAware: true,
   //   typeCheck: true,
@@ -23,8 +23,7 @@ export default defineConfig({
       'error',
       {
         hexadecimal: { groupLength: 4 },
-        minimumDigits: 6,
-        onlyIfContainsSeparator: true,
+        number: { minimumDigits: 6 },
       },
     ],
   },

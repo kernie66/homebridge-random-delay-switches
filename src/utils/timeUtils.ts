@@ -49,13 +49,13 @@ import { DateTime } from 'luxon';
 
 export const getTimestamp = () => DateTime.now().toUnixInteger();
 
-export const sleep = (seconds: number) => {
+export const sleep = async (seconds: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, seconds * 1000);
   });
 };
 
-export const wait = (ms: number, opts: { signal?: AbortSignal } = {}) => {
+export const wait = async (ms: number, opts: { signal?: AbortSignal } = {}) => {
   return new Promise((resolve, reject) => {
     const timerId = setTimeout(resolve, ms);
     if (opts.signal) {

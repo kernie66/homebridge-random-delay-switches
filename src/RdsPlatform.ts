@@ -24,9 +24,7 @@ let hap: API['hap'];
 class RdsPlatform extends Platform<RdsPlatform> {
   config: Partial<ConfigJson>;
   rds: RdsTypes;
-  switchAccessories!: {
-    [key: string]: RdsAccessory;
-  };
+  switchAccessories!: Record<string, RdsAccessory>;
   handleError: typeof handleError<RdsPlatform>;
   handleErrorSync: typeof handleErrorSync<RdsPlatform>;
   validSwitches: Array<Partial<SwitchConfigType>>;
@@ -97,7 +95,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
         }
         if (switchSettings.cronString) {
           const cronStrings = switchSettings.cronString.split(';');
-          if (cronStrings.length) {
+          if (cronStrings.length > 0) {
             for (const cronString of cronStrings) {
               const cronValidation = validateCronExpression(cronString);
               if (!cronValidation.valid) {

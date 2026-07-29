@@ -1,3 +1,5 @@
+/* oxlint-disable no-this-in-exported-function */
+
 import type { Platform } from 'homebridge-lib/Platform';
 
 import figlet from 'figlet';
@@ -5,12 +7,12 @@ import { setTimeout } from 'node:timers/promises';
 
 import getErrorMessage from './getErrorMessage.js';
 
-interface HandleErrorParams {
+type HandleErrorParams = {
   waitMinutes?: number;
   header?: string;
   error?: unknown;
   reason?: string;
-}
+};
 
 // Error handler for catch blocks.
 // Waits for a specified number of minutes before retrying an operation,

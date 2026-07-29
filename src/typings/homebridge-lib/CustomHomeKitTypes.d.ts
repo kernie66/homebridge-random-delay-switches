@@ -78,11 +78,12 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
       uuid: string,
       props: CharacteristicProps,
       displayName?: string,
-    ): {
-      [key: string]: {
+    ): Record<
+      string,
+      {
         UUID: string;
-      };
-    };
+      }
+    >;
     /** Creates a new subclass of {@link Service}
      * for a custom HomeKit service.
      *
@@ -109,11 +110,12 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
         characteristic: string | number;
       }>,
       OptionalCharacteristics?: never[],
-    ): {
-      [key: string]: {
+    ): Record<
+      string,
+      {
         UUID: string;
-      };
-    };
+      }
+    >;
     /** Return the full HAP UUID.
      * @final
      * @param {!string} id - The short HAP UUID.

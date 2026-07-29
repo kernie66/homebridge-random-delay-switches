@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vite-plus/test';
 
 import { setSchedule } from '../cronUtils.ts';
 
-const testSchedules = ['15 * * * 5 *', '5/30 * * * *; * * * * 4 *', '2 * 12-15 6 * *; * * * 4,6 *;* * 2/6 * 4'];
+const testSchedules = [
+  '15 * * * 5 *',
+  '5/30 * * * *; * * * * 4 *',
+  '2 * 12-15 6 * *; * * * 4,6 *;* * 2/6 * 4',
+] as const;
 
 describe('Test the cron scheduling functions', () => {
   it('sets a simple schedule', () => {

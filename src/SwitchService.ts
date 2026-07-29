@@ -99,7 +99,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.warn('Too large delay time, set to maximum allowed (10 days)');
     }
     this.debug('Delay value: %s', delayValue);
-    this.delay = delayValue < 0 ? 0 : delayValue;
+    this.delay = Math.max(0, delayValue);
 
     let minDelayValue = 1;
     this.debug('Min delay config: %s', switchAccessory.minDelay);
@@ -111,7 +111,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       }
     }
     this.debug('Min delay value: %s', minDelayValue);
-    this.minDelay = minDelayValue < 0 ? 0 : minDelayValue;
+    this.minDelay = Math.max(0, minDelayValue);
 
     this.time = toTime(this.delay);
     this.debug(
@@ -285,7 +285,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.addCharacteristicDelegate({
       Characteristic: this.rds.Characteristics.CronSchedule,
       key: 'cronSchedule',
-      value: this.cronSchedule,
+      value: 'Schedule disabled',
     });
 
     this.addCharacteristicDelegate({
@@ -383,6 +383,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
 
   getSchedule(cronString: string) {
     // Check if it is a string with at least 5 values, 4 spaces
+    const hello = 'Hej';
     if (cronString) {
       if (cronString.length >= 9) {
         try {
@@ -401,7 +402,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
             schedule = schedule.replaceAll(/second[s]?/g, 'sec');
             schedule = schedule.replaceAll(/minute[s]?/g, 'min');
             if (schedule.length > 64) {
-              schedule = schedule.slice(0, 62) + '>';
+              schedule = `${schedule.slice(0, 62)}>`;
             }
           }
           return schedule;

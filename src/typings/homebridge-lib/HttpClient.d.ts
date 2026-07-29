@@ -9,9 +9,7 @@ declare module 'homebridge-lib/HttpClient' {
     static get HttpResponse(): typeof HttpResponse;
 
     constructor(params: {
-      headers?: {
-        [key: string]: string;
-      };
+      headers?: Record<string, string>;
       host?: string;
       https?: boolean;
       json?: boolean;
@@ -63,13 +61,7 @@ declare module 'homebridge-lib/HttpClient' {
      * @return {HttpClient.HttpResponse} response - The response.
      * @throws {HttpClient.HttpError} In case of error.
      */
-    get(
-      resource: string,
-      headers?: {
-        [key: string]: string;
-      },
-      suffix?: string,
-    ): Promise<HttpResponse>;
+    get(resource: string, headers?: Record<string, string>, suffix?: string): Promise<HttpResponse>;
     /** PUT request.
      * @param {!string} resource - The resource.
      * @param {?*} body - The body for the request.
@@ -79,14 +71,7 @@ declare module 'homebridge-lib/HttpClient' {
      * @return {HttpClient.HttpResponse} response - The response.
      * @throws {HttpClient.HttpError} In case of error.
      */
-    put(
-      resource: string,
-      body: unknown,
-      headers?: {
-        [key: string]: string;
-      },
-      suffix?: string,
-    ): Promise<HttpResponse>;
+    put(resource: string, body: unknown, headers?: Record<string, string>, suffix?: string): Promise<HttpResponse>;
     /** POST request.
      * @param {!string} resource - The resource.
      * @param {?*} body - The body for the request.
@@ -96,14 +81,7 @@ declare module 'homebridge-lib/HttpClient' {
      * @return {HttpClient.HttpResponse} response - The response.
      * @throws {HttpClient.HttpError} In case of error.
      */
-    post(
-      resource: string,
-      body: unknown,
-      headers?: {
-        [key: string]: string;
-      },
-      suffix?: string,
-    ): Promise<HttpResponse>;
+    post(resource: string, body: unknown, headers?: Record<string, string>, suffix?: string): Promise<HttpResponse>;
     /** DELETE request.
      * @param {!string} resource - The resource.
      * @param {?*} body - The body for the request.
@@ -113,14 +91,7 @@ declare module 'homebridge-lib/HttpClient' {
      * @return {object} response - The response.
      * @throws {HttpClient.HttpError} In case of error.
      */
-    delete(
-      resource: string,
-      body: unknown,
-      headers?: {
-        [key: string]: string;
-      },
-      suffix?: string,
-    ): Promise<HttpResponse>;
+    delete(resource: string, body: unknown, headers?: Record<string, string>, suffix?: string): Promise<HttpResponse>;
     /** Issue an HTTP request.
      * @param {string} method - The method for the request.
      * @param {!string} resource - The resource for the request.
@@ -137,13 +108,9 @@ declare module 'homebridge-lib/HttpClient' {
       method: string,
       resource: string,
       body: unknown,
-      headers?: {
-        [key: string]: string;
-      },
+      headers?: Record<string, string>,
       suffix?: string,
-      info?: {
-        [key: string]: string;
-      },
+      info?: Record<string, string>,
     ): Promise<HttpResponse>;
   }
   export { HttpClient };
@@ -162,9 +129,7 @@ declare class HttpResponse<T> {
   request: HttpRequest;
   statusCode: number;
   statusMessage: string;
-  headers: {
-    [key: string]: string;
-  };
+  headers: Record<string, string>;
   body: T;
   parsedBody?: unknown;
   ok?: boolean;
@@ -173,9 +138,7 @@ declare class HttpResponse<T> {
     request: HttpRequest,
     statusCode: number,
     statusMessage: string,
-    headers: {
-      [key: string]: string;
-    },
+    headers: Record<string, string>,
     body?: T,
     parsedBody?: unknown,
   );
@@ -186,9 +149,7 @@ declare class HttpRequest {
   id: number;
   method: string;
   resource: string;
-  headers: {
-    [key: string]: string;
-  };
+  headers: Record<string, string>;
   body: string;
   url: string;
 
@@ -197,9 +158,7 @@ declare class HttpRequest {
     id: number,
     method: string,
     resource: string,
-    headers: {
-      [key: string]: string;
-    },
+    headers: Record<string, string>,
     body: string,
     url: string,
   );

@@ -3,8 +3,8 @@
 
 import type { SwitchConfigType } from './SwitchTypes.js';
 
-export interface ConfigJson {
+export type ConfigJson = {
   name: string;
   delaySwitches: SwitchConfigType[];
   platform: string;
-}
+};

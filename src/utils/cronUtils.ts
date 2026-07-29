@@ -1,5 +1,6 @@
 import { CronJob, validateCronExpression } from 'cron';
 import cronstrue from 'cronstrue';
+import { DateTime } from 'luxon';
 
 export const setSchedule = (cronString: string) => {
   let cronArray: string[] = [];
@@ -33,7 +34,7 @@ export const setSchedule = (cronString: string) => {
       schedule = schedule.replaceAll(/second[s]?/g, 'sec');
       schedule = schedule.replaceAll(/minute[s]?/g, 'min');
       if (schedule.length > 64) {
-        schedule = schedule.slice(0, 62) + '>';
+        schedule = `${schedule.slice(0, 62)}>`;
       }
     }
   } else {
@@ -47,13 +48,13 @@ export const parseCronString = (cronString: string | undefined) => {
 
   if (cronString) {
     const cronStrings = cronString.split(';');
-    if (cronStrings.length) {
-      for (const cronString of cronStrings) {
-        const cronValidation = validateCronExpression(cronString);
+    if (cronStrings.length > 0) {
+      for (const cronStr of cronStrings) {
+        const cronValidation = validateCronExpression(cronStr);
         if (!cronValidation.valid) {
           throw new TypeError(`cronString must be in the format '(second) minute hour * * *'`);
         }
-        cronArray.push(cronString);
+        cronArray.push(cronStr);
       }
     }
   }
@@ -61,15 +62,12 @@ export const parseCronString = (cronString: string | undefined) => {
 };
 
 export const runCronJobs = (cronArray: string[], callback: () => void) => {
-  for (const cronString of cronArray) {
-    const cronJob = new CronJob(cronString, callback);
+  const nextDatesArray: Array<DateTime[]> = [];
+  for (const cronStr of cronArray) {
+    const cronJob = new CronJob(cronStr, callback);
     cronJob.start();
-    this.log('Starting cron job');
     const nextDates = cronJob.nextDates(5);
-    let word = 'Next';
-    for (const i in nextDates) {
-      this.log('%s at %s', word, nextDates[i].toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS));
-      word = 'Then';
-    }
+    nextDatesArray.push(nextDates);
   }
+  return nextDatesArray;
 };

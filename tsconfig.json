@@ -1,4 +1,7 @@
 {
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*config.ts"],
+
   "compilerOptions": {
     // "incremental": true, // Enables incremental compilation, build only the changed code
     "strict": true, // Enables all strict type-checking options (best practice)
@@ -12,6 +15,8 @@
     "types": ["node"], // Specifies the type definitions to be included in the compilation.
     "sourceMap": true, // Generates source maps for debugging
     "skipLibCheck": true, // Skips type checking of declaration files
+    // "verbatimModuleSyntax": true,
+    "isolatedModules": false,
     "noUnusedParameters": false, // Do not allow unused parameters in functions.
     "noUnusedLocals": true, // Similar to noUnusedParameters, but for local variables.
     "noUncheckedIndexedAccess": true, // it ensures that indexed access types are checked for undefined values,
@@ -27,7 +32,7 @@
     "declaration": true, // Generates corresponding .d.ts file
     "allowSyntheticDefaultImports": true,
     "useUnknownInCatchVariables": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["**/__tests__/*", "**/*config.ts", "node_modules", "dist"]
+  }
+  // "include": ["src/**/*"],
+  // "exclude": ["**/__tests__/*", "**/*config.ts", "node_modules", "dist"]
 }

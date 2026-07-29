@@ -1,5 +1,3 @@
-/* oxlint-disable no-this-in-exported-function */
-
 import type { Platform } from 'homebridge-lib/Platform';
 
 import figlet from 'figlet';

@@ -3,7 +3,7 @@ declare module 'homebridge-lib/AccessoryDelegate' {
   import type { Delegate } from 'homebridge-lib/Delegate';
 
   import { CharacteristicProps } from 'homebridge';
-  import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
+  // import 'homebridge-lib/ServiceDelegate/AccessoryInformation';
 
   /** Delegate of a HomeKit accessory.
    * <br>See {@link AccessoryDelegate}.

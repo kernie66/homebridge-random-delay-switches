@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 
-import getErrorMessage from '../getErrorMessage.ts';
+import getErrorMessage from '../getErrorMessage.js';
 
 describe('Test the error message converter', () => {
   it('gets the default error message', () => {

@@ -33,7 +33,9 @@ class RdsPlatform extends Platform<RdsPlatform> {
     super(log, configJson, homebridge);
     hap = homebridge.hap;
 
-    this.once('heartbeat', this.init);
+    this.once('heartbeat', async () => {
+      await this.init();
+    });
     this.config = {
       name: 'RandomDelaySwitches',
     };
@@ -79,7 +81,14 @@ class RdsPlatform extends Platform<RdsPlatform> {
             throw new TypeError(`config.json: delaySwitches[${index}]: ${error}`);
           });
         switchOptionParser.parse(switchConfig);
-        const switchSettings: SwitchSettingType = config as SwitchSettingType;
+        // Here we know that config is fully defined
+        assert(is<Required<SwitchConfigType>>(config));
+        const switchSettings: SwitchSettingType = {
+          ...config,
+          cronArray: [],
+          prefix: config.random ? 'Random ' : 'Fixed ',
+          uuid: UUIDGen.generate(config.name),
+        };
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
           switchSettings.infiniteRepeats = true;
@@ -87,7 +96,6 @@ class RdsPlatform extends Platform<RdsPlatform> {
           this.log('Converting repeats = -1 to infiniteRepeats = true for', switchSettings.name);
         }
         // Check if the cronString is valid and split it into an array of cron strings
-        switchSettings.cronArray = [];
         try {
           switchSettings.cronArray = parseCronString(switchSettings.cronString);
         } catch (error) {
@@ -107,7 +115,6 @@ class RdsPlatform extends Platform<RdsPlatform> {
             }
           }
         }
-        switchSettings.prefix = switchSettings.random ? 'Random ' : 'Fixed ';
         switchSettings.uuid = UUIDGen.generate(switchSettings.name);
         this.debug('Found switch: %s', switchSettings.name);
         return switchSettings;

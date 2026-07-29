@@ -108,7 +108,7 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
       uuid('0A4'),
       {
         format: this.Formats.UINT16,
-        maxValue: 65_535,
+        maxValue: 65535,
         minValue: 0,
         perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
       },

@@ -1,6 +1,7 @@
 import { CronJob, validateCronExpression } from 'cron';
 import cronstrue from 'cronstrue';
 import { DateTime } from 'luxon';
+import { assert, is } from 'tsafe';
 
 export const setSchedule = (cronString: string) => {
   let cronArray: string[] = [];
@@ -40,7 +41,7 @@ export const setSchedule = (cronString: string) => {
   } else {
     schedule = 'Schedule disabled';
   }
-  return { schedule, cronArray, scheduleArray };
+  return { cronArray, schedule, scheduleArray };
 };
 
 export const parseCronString = (cronString: string | undefined) => {
@@ -62,12 +63,36 @@ export const parseCronString = (cronString: string | undefined) => {
 };
 
 export const runCronJobs = (cronArray: string[], callback: () => void) => {
-  const nextDatesArray: Array<DateTime[]> = [];
+  const cronJobs: CronJob[] = [];
+  const nextDatesArray: string[][] = [];
   for (const cronStr of cronArray) {
     const cronJob = new CronJob(cronStr, callback);
+    cronJobs.push(cronJob);
     cronJob.start();
-    const nextDates = cronJob.nextDates(5);
+    const nextDates = cronJob.nextDates(5).map((date) => date.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS));
     nextDatesArray.push(nextDates);
   }
-  return nextDatesArray;
+  return { cronJobs, nextDatesArray };
+};
+
+export const stopCronJobs = async (cronJobs: Array<CronJob | undefined>) => {
+  let stoppedCronJobs = 0;
+  let lastDates: Date[] = [];
+
+  if (cronJobs?.length) {
+    for (const cronJob of cronJobs) {
+      try {
+        assert(is<CronJob>(cronJob));
+        await cronJob.stop();
+        stoppedCronJobs++;
+        const lastDate = cronJob.lastDate();
+        if (lastDate) {
+          lastDates.push(lastDate);
+        }
+      } catch (error) {
+        throw new Error(`Error stopping cron job`, { cause: error });
+      }
+    }
+  }
+  return { stoppedCronJobs, lastDates };
 };

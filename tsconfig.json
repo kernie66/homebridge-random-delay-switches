@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*config.ts"],
+  "exclude": ["**/__tests__/*", "node_modules", "dist", "**/*config.ts"],
 
   "compilerOptions": {
     // "incremental": true, // Enables incremental compilation, build only the changed code

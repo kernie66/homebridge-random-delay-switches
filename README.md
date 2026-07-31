@@ -87,13 +87,13 @@ A cron string of `* * * * * *` (six fields) will trigger every second, while a c
 
 - `*/15 * * * Sat,Sun` will trigger every 15th minute on Saturdays and Sundays
 - `30 15 16-19 * */3 *` will trigger 15th minutes and 30 seconds past the hour from 16:15:30 to 19:15:30 every third month
-- `5/20 16-19 * * Mon-Fri; 5/20 14-20 * * Sat,Sun` will trigger every 20th minute, starting 5 minutes past the hour between 16:05 and 19:45 on weekdays and between 14:05 and 20:45 on weekends
+- `5-59/20 16-19 * * Mon-Fri; 5-59/20 14-20 * * Sat,Sun` will trigger every 20th minute, starting 5 minutes past the hour between 16:05 and 19:45 on weekdays and between 14:05 and 20:45 on weekends
 
-Read more about the available cron patterns [here](https://github.com/kelektiv/node-cron#available-cron-patterns).
+Read more about the available cron patterns [here](https://www.nodecron.com/cron-syntax.html).
 
 Note that Sunday is weekday 0, so if Sunday is used in a range it must come first.
 
-It is not always so easy to get the cron strings right, and they may not be implemented the same way by different libraries or plugins. The selected [cron](https://github.com/kelektiv/node-cron) package seems to work as intended, but to check that you get the intended schedule please check the Homebridge log. When the cron string is set, the log will include a human readable interpretation of the cron string, as well as the five next scheduled times. The readable interpretation is also shown in the [control values](#control-values), but it is limited to 64 characters.
+It is not always so easy to get the cron strings right, and they may not be implemented the same way by different libraries or plugins. The selected (v2) [cron](https://www.nodecron.com) package seems to work mostlyas intended, except that steps now needs a wildcard or a range (e.g. `*/20` or `5-59/20`). To check that you get the intended schedule, please check the Homebridge log. When the cron string is set, the log will include a human readable interpretation of the cron string, as well as the next five scheduled times. The readable interpretation is also shown in the [control values](#control-values), but it is limited to 64 characters.
 
 ## Configuration options
 

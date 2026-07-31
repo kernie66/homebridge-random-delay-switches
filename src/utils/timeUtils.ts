@@ -45,9 +45,7 @@ export const toSeconds = (timeString: string) => {
   return seconds;
 };
 
-import { DateTime } from 'luxon';
-
-export const getTimestamp = () => DateTime.now().toUnixInteger();
+export const getTimestamp = () => Date.now();
 
 export const sleep = async (seconds: number) => {
   return new Promise((resolve) => {

@@ -5,9 +5,9 @@
 
 import type { API, Logging } from 'homebridge';
 
-import { validateCronExpression } from 'cron';
 import { OptionParser } from 'homebridge-lib/OptionParser';
 import { Platform } from 'homebridge-lib/Platform';
+import { setLogger } from 'node-cron';
 import { once } from 'node:events';
 import { assert, is } from 'tsafe';
 
@@ -16,7 +16,7 @@ import type { SwitchAccessoryParams, SwitchConfigType, SwitchSettingType } from 
 
 import RdsAccessory from './RdsAccessory.js';
 import RdsTypes from './RdsTypes.js';
-import { parseCronString } from './utils/cronUtils.js';
+import { checkCronString } from './utils/cronUtils.js';
 import { handleError, handleErrorSync } from './utils/handleError.js';
 
 let hap: API['hap'];
@@ -61,6 +61,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
 
       this.switchAccessories = {};
       assert(is<SwitchConfigType[]>(this.config.delaySwitches));
+
       this.validSwitches = this.config.delaySwitches.map((switchConfig, index) => {
         const config: Partial<SwitchConfigType> = { cronString: '' };
         const switchOptionParser = new OptionParser(config, true);
@@ -85,7 +86,6 @@ class RdsPlatform extends Platform<RdsPlatform> {
         assert(is<Required<SwitchConfigType>>(config));
         const switchSettings: SwitchSettingType = {
           ...config,
-          cronArray: [],
           prefix: config.random ? 'Random ' : 'Fixed ',
           uuid: UUIDGen.generate(config.name),
         };
@@ -95,27 +95,16 @@ class RdsPlatform extends Platform<RdsPlatform> {
           switchSettings.repeats = 0;
           this.log('Converting repeats = -1 to infiniteRepeats = true for', switchSettings.name);
         }
-        // Check if the cronString is valid and split it into an array of cron strings
-        try {
-          switchSettings.cronArray = parseCronString(switchSettings.cronString);
-        } catch (error) {
-          this.log('Error parsing cronString for', switchSettings.name, error);
-        }
-        if (switchSettings.cronString) {
-          const cronStrings = switchSettings.cronString.split(';');
-          if (cronStrings.length > 0) {
-            for (const cronString of cronStrings) {
-              const cronValidation = validateCronExpression(cronString);
-              if (!cronValidation.valid) {
-                throw new TypeError(
-                  `config.json: delaySwitches[${index}]: cronString must be in the format '(second) minute hour * * *'`,
-                );
-              }
-              switchSettings.cronArray.push(cronString);
-            }
+        // Check if the cronString is valid
+        const { isValid, allErrors } = checkCronString(switchSettings.cronString);
+        if (!isValid) {
+          this.log('Error parsing cronString for', switchSettings.name);
+          for (const error of allErrors) {
+            this.error('cronString error:', error);
           }
+        } else if (allErrors[0] !== undefined) {
+          this.log(allErrors[0]);
         }
-        switchSettings.uuid = UUIDGen.generate(switchSettings.name);
         this.debug('Found switch: %s', switchSettings.name);
         return switchSettings;
       });
@@ -127,6 +116,14 @@ class RdsPlatform extends Platform<RdsPlatform> {
       });
       return;
     }
+
+    // Configure the cron job logger to log to the Homebridge log file
+    setLogger({
+      info: (message) => this.log(message),
+      warn: (message) => this.warn(message),
+      error: (message, err) => this.error(err ?? message),
+      debug: (message, err) => this.error(err ?? message),
+    });
     this.debug('config: %j', this.config);
   }
 
@@ -138,7 +135,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
       const switchParams: SwitchAccessoryParams = {
         category: this.Accessory.Categories.SWITCH,
         firmware: '1.0.0',
-        cronArray: delaySwitch.cronArray || [],
+        cronString: delaySwitch.cronString,
         delay: delaySwitch.delay,
         disableSensor: delaySwitch.disableSensor,
         heartrate: delaySwitch.heartrate,

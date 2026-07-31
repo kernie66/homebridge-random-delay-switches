@@ -3,19 +3,18 @@
 //
 // Homebridge plugin for random delay switches.
 
-import { CronJob, validateCronExpression } from 'cron';
-import cronstrue from 'cronstrue';
+import type { ScheduledTask } from 'node-cron';
+
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
-import { DateTime } from 'luxon';
-import { assert, is } from 'tsafe';
 
 import type RdsAccessory from './RdsAccessory.js';
 import type RdsTypes from './RdsTypes.js';
 import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 import type { Time } from './utils/timeUtils.js';
 
+import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import { getTimestamp, toSeconds, toTime, wait } from './utils/timeUtils.js';
 
 dayjs.extend(localizedFormat);
@@ -56,7 +55,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   startOnReboot: boolean;
   singleActivation: boolean;
   cronString: string;
-  cronJobs: Array<CronJob | undefined>;
+  cronJobs: ScheduledTask[];
   heartrate: number;
   useConfig: boolean;
   disableSensor: boolean;
@@ -80,7 +79,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.switchOn = switchAccessory.switchOn;
     this.startOnReboot = switchAccessory.startOnReboot;
     this.singleActivation = switchAccessory.singleActivation;
-    this.cronString = switchAccessory.cronString || '';
+    this.cronString = switchAccessory.cronString;
     this.heartrate = switchAccessory.heartrate;
     this.useConfig = switchAccessory.useConfig;
     this.disableSensor = switchAccessory.disableSensor;
@@ -89,6 +88,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.timeLeft = 0;
     this.ac = new AbortController();
     this.acSignal = this.ac.signal;
+    this.cronJobs = [];
 
     this.debug('SwitchService constructor called at %s', date);
 
@@ -274,12 +274,13 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'cron',
       value: this.cronString,
     }).on('didSet', (value: string) => {
-      this.stopCronJobs(this.cronJobs);
-      const schedule = this.getSchedule(value);
-      if (schedule != 'Schedule disabled') {
-        this.cronJobs = this.parseCron(value);
+      const { isValid, allErrors } = checkCronString(value);
+      if (!isValid) {
+        this.error(`Invalid cron string: ${allErrors.join(', ')}`);
+        this.values.cron = '';
+      } else {
+        this.startCronJobs();
       }
-      this.values.cronSchedule = schedule;
     });
 
     this.addCharacteristicDelegate({
@@ -319,19 +320,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     }
 
     // Start cron jobs, if defined
-    this.cronJobs = [];
-    // Check for persistent cron string, else use config
-    let cronString = '';
-    if (this.values.cron) {
-      cronString = this.values.cron;
-    } else if (this.cronString) {
-      cronString = this.cronString;
-    }
-    const schedule = this.getSchedule(cronString);
-    if (schedule != 'Schedule disabled') {
-      this.cronJobs = this.parseCron(cronString);
-    }
-    this.values.cronSchedule = schedule;
+    this.startCronJobs();
 
     // Check if the switch was on before plugin started and not stateful
     if (this.values.on && this.values.delay) {
@@ -345,6 +334,35 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     else {
       this.timeUp = true;
     }
+  }
+
+  // Start cron jobs for this switch
+  startCronJobs() {
+    // Stop any existing cron jobs
+    if (this.cronJobs) {
+      stopCronJobs(this.cronJobs);
+    }
+    this.cronJobs = [];
+    // Check for persistent cron string, else use config
+    let cronString = this.cronString;
+    if (this.values.cron) {
+      cronString = this.values.cron;
+    }
+    const { cronArray, schedule } = setSchedule(cronString);
+
+    if (schedule != 'Schedule disabled') {
+      const { cronJobs, nextDatesArray } = runCronJobs(cronArray, () => {
+        this.debug('Cron job triggered');
+        this.values.on = true;
+      });
+      this.cronJobs = cronJobs;
+      let word = 'Next';
+      for (const nextDate of nextDatesArray) {
+        this.log('%s at %s', word, nextDate);
+        word = 'Then';
+      }
+    }
+    this.values.cronSchedule = schedule;
   }
 
   async initSwitch() {
@@ -379,95 +397,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.values.heartrate = this.heartrate;
     await wait(500);
     this.values.setDefault = false;
-  }
-
-  getSchedule(cronString: string) {
-    // Check if it is a string with at least 5 values, 4 spaces
-    const hello = 'Hej';
-    if (cronString) {
-      if (cronString.length >= 9) {
-        try {
-          const scheduleArray = cronString.split(';');
-          let schedule = '';
-          let prefix = '';
-          for (const i in scheduleArray) {
-            const nextSchedule = cronstrue.toString(scheduleArray[i], {
-              use24HourTimeFormat: true,
-            });
-            this.log('Schedule: %s', nextSchedule);
-            schedule = schedule + prefix + nextSchedule;
-            prefix = '; ';
-          }
-          if (schedule.length > 64) {
-            schedule = schedule.replaceAll(/second[s]?/g, 'sec');
-            schedule = schedule.replaceAll(/minute[s]?/g, 'min');
-            if (schedule.length > 64) {
-              schedule = `${schedule.slice(0, 62)}>`;
-            }
-          }
-          return schedule;
-        } catch (error) {
-          this.warn('Error while parsing cron string: %s', error);
-        }
-      }
-    }
-    return 'Schedule disabled';
-  }
-
-  parseCron(cronString: string) {
-    const cronArray = cronString.split(';');
-    let cronJob: CronJob;
-    const cronJobs = [];
-    for (const cron of cronArray) {
-      const cronValidation = validateCronExpression(cron);
-      if (cronValidation.valid) {
-        this.log('Cron job: %s', cron);
-        cronJob = this.runCronJob(cron);
-        cronJobs.push(cronJob);
-      }
-    }
-    this.log('CronJobs started: %d', cronJobs.length);
-    return cronJobs;
-  }
-
-  stopCronJobs(cronJobs: Array<CronJob | undefined>) {
-    if (cronJobs?.length) {
-      this.log('CronJobs to stop: %d', cronJobs.length);
-      for (const cronJob of cronJobs) {
-        try {
-          assert(is<CronJob>(cronJob));
-          cronJob.stop();
-          if (cronJob.lastDate()) {
-            this.log('Stop cron job, last at %s', cronJob.lastDate());
-          }
-        } catch (error) {
-          this.warn('Error stopping cron job: %s', error);
-        }
-      }
-    } else {
-      this.log('No active cron job to stop');
-    }
-  }
-
-  runCronJob(cronString: string) {
-    let cronJob;
-    try {
-      cronJob = new CronJob(cronString, () => {
-        this.log('Running cron task');
-        this.values.on = true;
-      });
-      cronJob.start();
-      this.log('Starting cron job');
-      const nextDates = cronJob.nextDates(5);
-      let word = 'Next';
-      for (const i in nextDates) {
-        this.log('%s at %s', word, nextDates[i].toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS));
-        word = 'Then';
-      }
-    } catch (error) {
-      this.warn('Error staring cron job: %s', error);
-    }
-    return cronJob;
   }
 
   async setOn(switchAccessory: RdsAccessory, delayValue: number = 0) {

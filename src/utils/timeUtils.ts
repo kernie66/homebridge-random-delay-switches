@@ -74,6 +74,7 @@ export function isoDateTimeToEveDate(isoDateTime?: string | Date) {
   }
   return String(new Date(isoDateTime)).slice(0, 24);
 }
+
 /** Asynchronously wait for a specified number of seconds.
  *
  * Returns a promise that resolves after the specified number of seconds.

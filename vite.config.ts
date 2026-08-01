@@ -65,7 +65,7 @@ export default defineConfig({
     exclude: ['dist', 'node_modules'],
   },
   staged: {
-    // '*': 'vp check --fix',
-    '*': 'vp fmt',
+    '*': 'vp check --fix',
+    // '*': 'vp fmt',
   },
 });

@@ -69,8 +69,9 @@ describe('Test the time utility functions', () => {
     vi.useRealTimers();
     const controller = new AbortController();
     const startTime = Date.now();
-    await wait(0.1, controller.signal);
+    const result = await wait(0.1, controller.signal);
     const endTime = Date.now();
+    expect(result).toBe('Timeout reached');
     expect(endTime - startTime).toBeGreaterThanOrEqual(100);
   });
 

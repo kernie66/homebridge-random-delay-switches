@@ -40,7 +40,7 @@ export default class MotionService extends ServiceDelegate<RdsAccessory['platfor
   }
 
   doMotion(value: boolean) {
-    (async () => {
+    void (async () => {
       this.debug('Motion sensor got trigger with value: %s', value);
       this.values.motion = value;
       await wait(3);

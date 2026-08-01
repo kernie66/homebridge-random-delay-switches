@@ -15,7 +15,7 @@ import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 import type { Time } from './utils/timeUtils.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
-import { getTimestamp, toSeconds, toTime, wait, waitSync } from './utils/timeUtils.js';
+import { getTimestamp, toSeconds, toTime, wait } from './utils/timeUtils.js';
 
 dayjs.extend(localizedFormat);
 const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -239,10 +239,12 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       value: this.repeats,
     }).on('didSet', (value: number) => {
       if (value === -1) {
-        this.values.infiniteRepeats = true;
-        waitSync(0.5);
-        this.values.repeats = 0;
-        this.log('Reverted repeats = -1 to infinite repeats');
+        (async () => {
+          this.values.infiniteRepeats = true;
+          await wait(100);
+          this.values.repeats = 0;
+          this.log('Reverted repeats = -1 to infinite repeats');
+        })();
       }
     });
 
@@ -366,37 +368,43 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   }
 
   initSwitch() {
-    waitSync(1);
-    this.log('Start the timer at reboot');
-    this.values.on = true;
+    (async () => {
+      await wait(100);
+      this.log('Start the timer at reboot');
+      this.values.on = true;
+    })();
   }
 
   continueSwitch(switchAccessory: RdsAccessory) {
-    waitSync(1);
-    this.log('Switch was on at reboot');
-    this.switchOn = true; // Set to enable restart of timer
-    this.timeUp = true; // Set to not try to abort the abort controller
-    // Check if time left is less than 5 seconds, then use 5 seconds
-    const delayValue = Math.max(this.values.timestamp - getTimestamp(), 5);
-    this.log('Delay time left = %d', delayValue);
-    this.setOn(switchAccessory, delayValue);
+    (async () => {
+      await wait(100);
+      this.log('Switch was on at reboot');
+      this.switchOn = true; // Set to enable restart of timer
+      this.timeUp = true; // Set to not try to abort the abort controller
+      // Check if time left is less than 5 seconds, then use 5 seconds
+      const delayValue = Math.max(this.values.timestamp - getTimestamp(), 5);
+      this.log('Delay time left = %d', delayValue);
+      this.setOn(switchAccessory, delayValue);
+    })();
   }
 
   setConfigValues() {
-    this.time = toTime(this.delay);
-    this.values.delayDays = this.time.days;
-    this.values.delayHours = this.time.hours;
-    this.values.delayMinutes = this.time.minutes;
-    this.values.delaySeconds = this.time.seconds;
-    this.values.minDelay = this.minDelay;
-    this.values.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
-    this.values.random = this.random;
-    this.values.infiniteRepeats = this.infiniteRepeats;
-    this.values.repeats = this.repeats;
-    this.values.cron = this.cronString;
-    this.values.heartrate = this.heartrate;
-    waitSync(0.5);
-    this.values.setDefault = false;
+    (async () => {
+      this.time = toTime(this.delay);
+      this.values.delayDays = this.time.days;
+      this.values.delayHours = this.time.hours;
+      this.values.delayMinutes = this.time.minutes;
+      this.values.delaySeconds = this.time.seconds;
+      this.values.minDelay = this.minDelay;
+      this.values.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
+      this.values.random = this.random;
+      this.values.infiniteRepeats = this.infiniteRepeats;
+      this.values.repeats = this.repeats;
+      this.values.cron = this.cronString;
+      this.values.heartrate = this.heartrate;
+      wait(500);
+      this.values.setDefault = false;
+    })();
   }
 
   async setOn(switchAccessory: RdsAccessory, delayValue: number = 0) {

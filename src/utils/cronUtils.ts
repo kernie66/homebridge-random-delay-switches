@@ -3,7 +3,7 @@ import type { LastRun, ScheduledTask } from 'node-cron';
 import cronstrue from 'cronstrue';
 import { schedule as scheduleCron, shutdown, validateDetailed } from 'node-cron';
 
-import { isoDateTimeToEveDate } from './dateTimeHelpers.js';
+import { isoDateTimeToEveDate } from './timeUtils.js';
 
 export type CronArray = Array<{
   cronExpression: string;

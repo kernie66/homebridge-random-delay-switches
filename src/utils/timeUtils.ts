@@ -50,6 +50,30 @@ export const toSeconds = (timeString: string) => {
 /** Get the current timestamp in seconds since the Unix epoch. */
 export const getTimestamp = () => Math.round(Date.now() / 1000);
 
+/** Convert Unix timestamp in seconds to Eve display format. */
+export function toEveDate(timestamp: number) {
+  return String(new Date(timestamp * 1000)).slice(0, 24);
+}
+
+/** Convert ISO datetime to Eve display format
+ *
+ * @param isoDateTime - The ISO datetime string or Date object to convert.
+ * If not provided, the current date and time will be used.
+ * @returns The Eve display format string.
+ */
+export function isoDateTimeToEveDate(isoDateTime?: string | Date) {
+  if (!isoDateTime) {
+    const date = new Date();
+    isoDateTime = date.toISOString();
+  }
+  if (isoDateTime instanceof Date) {
+    isoDateTime = isoDateTime.toISOString();
+  }
+  if (!isoDateTime.includes('Z')) {
+    isoDateTime = `${isoDateTime}Z`;
+  }
+  return String(new Date(isoDateTime)).slice(0, 24);
+}
 /** Asynchronously wait for a specified number of seconds.
  *
  * Returns a promise that resolves after the specified number of seconds.
@@ -60,11 +84,13 @@ export const wait = async (seconds: number, signal?: AbortSignal) => {
   return setTimeoutPromise(timeout, 'Timeout reached', { signal });
 };
 
-/** Synchronously wait for a specified number of seconds.
+/** Synchronously wait for a specified number of milliseconds.
+ *
+ * @param ms - The number of milliseconds to wait.
+ *
+ * Note: This function will block the execution of the calling thread.
  */
-export const waitSync = (seconds: number) => {
-  const timeout = Math.round(seconds * 1000);
-  void (async () => {
-    await setTimeoutPromise(timeout);
-  })();
+export const syncWait = (ms: number) => {
+  const end = Date.now() + ms;
+  while (Date.now() < end) continue;
 };

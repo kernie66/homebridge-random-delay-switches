@@ -8,7 +8,7 @@ import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 import type RdsAccessory from './RdsAccessory.js';
 import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 
-import { waitSync } from './utils/timeUtils.js';
+import { wait } from './utils/timeUtils.js';
 
 type MotionServiceValues = {
   motion: boolean;
@@ -40,10 +40,12 @@ export default class MotionService extends ServiceDelegate<RdsAccessory['platfor
   }
 
   doMotion(value: boolean) {
-    this.debug('Motion sensor got trigger with value: %s', value);
-    this.values.motion = value;
-    waitSync(3);
-    this.values.motion = false;
-    this.log('End motion');
+    (async () => {
+      this.debug('Motion sensor got trigger with value: %s', value);
+      this.values.motion = value;
+      await wait(3);
+      this.values.motion = false;
+      this.log('End motion');
+    })();
   }
 }

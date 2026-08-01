@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
-import { getTimestamp, isoDateTimeToEveDate, toEveDate } from '../dateTimeHelpers.js';
+import { getTimestamp, isoDateTimeToEveDate, toEveDate, wait, syncWait } from '../timeUtils.js';
 
 process.env.TZ = 'Sweden/Stockholm';
 
@@ -15,7 +15,7 @@ function getTestTimestamp() {
   return testTimestampInSeconds;
 }
 
-describe('Test the DateTime helper functions', () => {
+describe('Test the time utility functions', () => {
   beforeAll(() => {
     // Mock the Date object/system time
     const mockDate = new Date(testDateTime);
@@ -55,5 +55,30 @@ describe('Test the DateTime helper functions', () => {
     const isoEveDateNoTZ = isoDateTimeToEveDate(isoString.slice(0, -1));
     // console.log('isoEveDate', isoEveDateNoTZ);
     expect(isoEveDateNoTZ).toBe(testIsoEveDate);
+  });
+
+  it('waits for a specified time (asynchronous)', async () => {
+    vi.useRealTimers();
+    const startTime = Date.now();
+    await wait(0.5);
+    const endTime = Date.now();
+    expect(endTime - startTime).toBeGreaterThanOrEqual(500);
+  });
+
+  it('waits for a specified time with abort controller', async () => {
+    vi.useRealTimers();
+    const controller = new AbortController();
+    const startTime = Date.now();
+    await wait(0.1, controller.signal);
+    const endTime = Date.now();
+    expect(endTime - startTime).toBeGreaterThanOrEqual(100);
+  });
+
+  it('waits synchronously for a specified time', async () => {
+    vi.useRealTimers();
+    const startTime = Date.now();
+    syncWait(100);
+    const endTime = Date.now();
+    expect(endTime - startTime).toBeGreaterThanOrEqual(100);
   });
 });

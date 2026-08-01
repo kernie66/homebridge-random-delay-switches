@@ -15,7 +15,7 @@ import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 import type { Time } from './utils/timeUtils.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
-import { getTimestamp, toSeconds, toTime, wait } from './utils/timeUtils.js';
+import { getTimestamp, toSeconds, toTime, wait, waitSync } from './utils/timeUtils.js';
 
 dayjs.extend(localizedFormat);
 const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -240,7 +240,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     }).on('didSet', (value: number) => {
       if (value === -1) {
         this.values.infiniteRepeats = true;
-        wait(500);
+        waitSync(0.5);
         this.values.repeats = 0;
         this.log('Reverted repeats = -1 to infinite repeats');
       }
@@ -365,14 +365,14 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.values.cronSchedule = schedule;
   }
 
-  async initSwitch() {
-    await wait(1000);
+  initSwitch() {
+    waitSync(1);
     this.log('Start the timer at reboot');
     this.values.on = true;
   }
 
-  async continueSwitch(switchAccessory: RdsAccessory) {
-    await wait(1000);
+  continueSwitch(switchAccessory: RdsAccessory) {
+    waitSync(1);
     this.log('Switch was on at reboot');
     this.switchOn = true; // Set to enable restart of timer
     this.timeUp = true; // Set to not try to abort the abort controller
@@ -382,7 +382,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.setOn(switchAccessory, delayValue);
   }
 
-  async setConfigValues() {
+  setConfigValues() {
     this.time = toTime(this.delay);
     this.values.delayDays = this.time.days;
     this.values.delayHours = this.time.hours;
@@ -395,14 +395,14 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.values.repeats = this.repeats;
     this.values.cron = this.cronString;
     this.values.heartrate = this.heartrate;
-    await wait(500);
+    waitSync(0.5);
     this.values.setDefault = false;
   }
 
   async setOn(switchAccessory: RdsAccessory, delayValue: number = 0) {
     // Add a delay so that values can be changed in scenes
     // before the switch is started
-    await wait(100);
+    await wait(0.1);
     let delayType = '';
     // Check if switch is turned off
     if (!this.switchOn) {
@@ -424,7 +424,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
         try {
           this.log('Restarting/extending the timer...');
           this.ac.abort();
-          await wait(500); // Wait for the abort to complete
+          await wait(0.5); // Wait for the abort to complete
         } catch (error) {
           this.warn('Error when restarting timer: %s', error.message);
         }
@@ -459,9 +459,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.timeUp = false;
       this.values.timeLeft = this.values.timeout;
       try {
-        await wait(this.values.timeout * 1000, {
-          signal: this.acSignal,
-        });
+        await wait(this.values.timeout, this.acSignal);
         this.log('Time is up!');
         this.timeUp = true;
         this.values.timeLeft = 0;
@@ -476,7 +474,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
           switchAccessory.emit('trigger', true);
         }
         if (this.values.repetition < this.values.repeats || this.values.infiniteRepeats) {
-          await wait(2000); // Wait for the motion to complete, 2 s
+          await wait(2); // Wait for the motion to complete, 2 s
           this.values.repetition += 1;
           this.log(
             'Restart, repetition number: %d of %s',

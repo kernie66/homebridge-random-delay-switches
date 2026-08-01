@@ -1,6 +1,8 @@
 // homebridge-random-delay-switch/lib/utils/timeUtils.ts
 // Copyright © 2021-2026 Kenneth Jagenheim. All rights reserved.
 
+import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
+
 export type Time = {
   days: number;
   hours: number;
@@ -45,23 +47,24 @@ export const toSeconds = (timeString: string) => {
   return seconds;
 };
 
-export const getTimestamp = () => Date.now();
+/** Get the current timestamp in seconds since the Unix epoch. */
+export const getTimestamp = () => Math.round(Date.now() / 1000);
 
-export const sleep = async (seconds: number) => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, seconds * 1000);
-  });
+/** Asynchronously wait for a specified number of seconds.
+ *
+ * Returns a promise that resolves after the specified number of seconds.
+ * The timer can be aborted using an {@link AbortSignal}.
+ */
+export const wait = async (seconds: number, signal?: AbortSignal) => {
+  const timeout = Math.round(seconds * 1000);
+  return setTimeoutPromise(timeout, 'Timeout reached', { signal });
 };
 
-export const wait = async (ms: number, opts: { signal?: AbortSignal } = {}) => {
-  return new Promise((resolve, reject) => {
-    const timerId = setTimeout(resolve, ms);
-    if (opts.signal) {
-      // implement aborting logic for our async operation
-      opts.signal.addEventListener('abort', (event) => {
-        clearTimeout(timerId);
-        reject(event);
-      });
-    }
-  });
+/** Synchronously wait for a specified number of seconds.
+ */
+export const waitSync = (seconds: number) => {
+  const timeout = Math.round(seconds * 1000);
+  void (async () => {
+    await setTimeoutPromise(timeout);
+  })();
 };

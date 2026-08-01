@@ -41,6 +41,38 @@
         "model": "Znet"
       },
       "platform": "TelldusToo"
+    },
+    {
+      "name": "RandomDelaySwitchesTest",
+      "delaySwitches": [
+        {
+          "name": "Tester",
+          "delay": "60",
+          "minDelay": "1",
+          "random": false,
+          "useConfig": true,
+          "disableSensor": false,
+          "startOnReboot": false,
+          "singleActivation": false,
+          "repeats": 0,
+          "infiniteRepeats": false,
+          "heartrate": 15
+        },
+        {
+          "name": "Tester Too",
+          "delay": "60",
+          "minDelay": "1",
+          "random": false,
+          "useConfig": true,
+          "disableSensor": false,
+          "startOnReboot": true,
+          "singleActivation": false,
+          "repeats": 0,
+          "infiniteRepeats": false,
+          "heartrate": 15
+        }
+      ],
+      "platform": "RandomDelaySwitches"
     }
   ],
   "accessories": []

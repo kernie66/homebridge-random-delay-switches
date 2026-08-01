@@ -4,3 +4,5 @@ node_modules
 *.js~
 \#*\#
 /dist
+test/hbConfig/accessories/
+test/hbConfig/persist/

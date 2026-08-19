@@ -3,13 +3,20 @@ import type { LastRun, ScheduledTask } from 'node-cron';
 import cronstrue from 'cronstrue';
 import { schedule as scheduleCron, shutdown, validateDetailed } from 'node-cron';
 
-import { isoDateTimeToEveDate } from './timeUtils.js';
+import { timeToEveDate } from './timeUtils.js';
 
 export type CronArray = Array<{
   cronExpression: string;
   cronSchedule: string;
 }>;
 
+/**
+ * Validates a cron string and returns an object containing a boolean indicating
+ * if the cron string is valid and an array of error messages if it is not.
+ * @param {string} cronString - The cron string to validate.
+ * @returns {{isValid: boolean, allErrors: string[]}} An object containing the validation result
+ * and an array of error messages.
+ */
 export const checkCronString = (cronString: string) => {
   let isValid = true;
   let allErrors: string[] = [];
@@ -77,9 +84,9 @@ export const runCronJobs = (cronArray: CronArray, callback: () => void) => {
 
   for (const cronStr of cronArray) {
     // Create and run a cron job for each cron string
-    const cronJob = scheduleCron(cronStr.cronExpression, callback, { name: cronStr.cronSchedule });
+    const cronJob = scheduleCron(cronStr.cronExpression, callback, { name: cronStr.cronSchedule, noOverlap: true });
     cronJobs.push(cronJob);
-    const nextDates = cronJob.getNextRuns(5).map((date) => isoDateTimeToEveDate(date));
+    const nextDates = cronJob.getNextRuns(5).map((date) => timeToEveDate(date));
     nextDatesArray.push(nextDates);
   }
   return { cronJobs, nextDatesArray };

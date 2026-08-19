@@ -5,8 +5,6 @@
 
 import type { ScheduledTask } from 'node-cron';
 
-import dayjs from 'dayjs';
-import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 
 import type RdsAccessory from './RdsAccessory.js';
@@ -17,9 +15,8 @@ import type { Time } from './utils/timeUtils.js';
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
 import { getTimestamp, toSeconds, toTime, wait } from './utils/timeUtils.js';
-
-dayjs.extend(localizedFormat);
-const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
+// oxlint-disable-next-line import/no-unassigned-import
+import 'temporal-polyfill/global';
 
 type SwitchServiceValues = {
   on: boolean;
@@ -91,7 +88,25 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.acSignal = this.ac.signal;
     this.cronJobs = [];
 
-    this.debug('SwitchService constructor called at %s', date);
+    this.log(
+      'SwitchService constructor called at %s',
+      Temporal.Now.zonedDateTimeISO()
+        .toLocaleString(undefined, {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          // dateStyle: 'medium',
+          // timeStyle: 'medium',
+          hour12: false,
+        })
+        .replace(/,/g, '')
+        .slice(0, 24),
+    );
+    this.log('Date equivalent: %s', String(new Date(new Date().toISOString())).slice(0, 24));
 
     // Convert delay and minDelay from strings to seconds
     let delayValue = toSeconds(switchAccessory.delay);
@@ -340,31 +355,48 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   }
 
   // Start cron jobs for this switch
+  /**
+   * Start the cron jobs for this switch.
+   */
   startCronJobs() {
     // Stop any existing cron jobs
     if (this.cronJobs) {
+      this.debug('Stopping existing cron jobs');
       stopCronJobs(this.cronJobs);
     }
     this.cronJobs = [];
+
     // Check for persistent cron string, else use config
     let cronString = this.cronString;
     if (this.values.cron) {
       cronString = this.values.cron;
     }
+
+    // Set schedule from cron string
     const { cronArray, schedule } = setSchedule(cronString);
 
-    if (schedule != 'Schedule disabled') {
+    // Check if a valid schedule was set
+    if (schedule !== 'Schedule disabled') {
       const { cronJobs, nextDatesArray } = runCronJobs(cronArray, () => {
-        this.debug('Cron job triggered');
-        this.values.on = true;
+        this.debug(`timeUp: ${this.timeUp}, switchOn: ${this.switchOn}`);
+        if (!this.timeUp || this.switchOn) {
+          this.log('Triggered cron job skipped, switch delay already in progress');
+        } else {
+          this.log('Cron job triggered');
+          this.values.on = true;
+        }
       });
       this.cronJobs = cronJobs;
+
+      // Log the next dates for the cron jobs
       let word = 'Next';
       for (const nextDate of nextDatesArray) {
         this.log('%s at %s', word, nextDate);
         word = 'Then';
       }
     }
+
+    // Set the cron schedule string
     this.values.cronSchedule = schedule;
   }
 
@@ -512,5 +544,3 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     }
   }
 }
-
-module.exports = SwitchService;

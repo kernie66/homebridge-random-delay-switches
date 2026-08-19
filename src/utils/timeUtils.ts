@@ -2,6 +2,8 @@
 // Copyright © 2021-2026 Kenneth Jagenheim. All rights reserved.
 
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
+// oxlint-disable-next-line import/no-unassigned-import
+import 'temporal-polyfill/global';
 
 export type Time = {
   days: number;
@@ -48,32 +50,48 @@ export const toSeconds = (timeString: string) => {
 };
 
 /** Get the current timestamp in seconds since the Unix epoch. */
-export const getTimestamp = () => Math.round(Date.now() / 1000);
+export const getTimestamp = () => Math.round(Temporal.Now.instant().epochMilliseconds / 1000);
 
-/** Convert Unix timestamp in seconds to Eve display format. */
-export function toEveDate(timestamp: number) {
-  return String(new Date(timestamp * 1000)).slice(0, 24);
-}
+/** Format options for Eve display date/time. */
+const eveDateFormat: Intl.DateTimeFormatOptions = {
+  weekday: 'short',
+  month: 'short',
+  day: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+};
 
-/** Convert ISO datetime to Eve display format
+/** Format a Temporal.Instant to an Eve display date/time string. */
+const formatEveDate = (date: Temporal.Instant): string => {
+  return date.toLocaleString(undefined, eveDateFormat).replace(/,/g, '').slice(0, 24);
+};
+
+/** Convert different time formats to Eve display format
  *
- * @param isoDateTime - The ISO datetime string or Date object to convert.
+ * @param time - The ISO time string, timestamp in seconds or Date object to convert.
  * If not provided, the current date and time will be used.
  * @returns The Eve display format string.
  */
-export function isoDateTimeToEveDate(isoDateTime?: string | Date) {
-  if (!isoDateTime) {
-    const date = new Date();
-    isoDateTime = date.toISOString();
+export const timeToEveDate = (time?: string | number | Date): string => {
+  let timestamp = Temporal.Now.instant();
+
+  if (time instanceof Date) {
+    timestamp = time.toTemporalInstant();
   }
-  if (isoDateTime instanceof Date) {
-    isoDateTime = isoDateTime.toISOString();
+  if (typeof time === 'string') {
+    if (!time.includes('Z')) {
+      time = `${time}Z`;
+    }
+    timestamp = Temporal.Instant.from(time);
   }
-  if (!isoDateTime.includes('Z')) {
-    isoDateTime = `${isoDateTime}Z`;
+  if (typeof time === 'number') {
+    timestamp = Temporal.Instant.fromEpochMilliseconds(time * 1000);
   }
-  return String(new Date(isoDateTime)).slice(0, 24);
-}
+  return formatEveDate(timestamp);
+};
 
 /** Asynchronously wait for a specified number of seconds.
  *

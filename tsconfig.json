@@ -10,28 +10,28 @@
     "allowJs": true, // Allows JavaScript files to be compiled alongside TypeScript files.
     "target": "es2022", // Specifies the ECMAScript target version
     "module": "nodenext", // Sets the module system to use (commonjs, nodenext, esnext)
-    "moduleResolution": "nodenext",
-    "lib": ["DOM", "ES2022"], // Specifies the library files to be included in the compilation.
+    "moduleResolution": "nodenext", // Specifies the module resolution strategy
+    "lib": ["DOM", "ES2022", "ESNext"], // Specifies the library files to be included in the compilation.
     "types": ["node"], // Specifies the type definitions to be included in the compilation.
     "sourceMap": true, // Generates source maps for debugging
     "skipLibCheck": true, // Skips type checking of declaration files
     // "verbatimModuleSyntax": true,
-    "isolatedModules": false,
+    "isolatedModules": false, // Ensures that each file can be safely transpiled without relying on other imports.
     "noUnusedParameters": false, // Do not allow unused parameters in functions.
     "noUnusedLocals": true, // Similar to noUnusedParameters, but for local variables.
     "noUncheckedIndexedAccess": true, // it ensures that indexed access types are checked for undefined values,
     "esModuleInterop": true, // Enables compatibility with CommonJS modules, allowing default imports from modules with no default export.
     "resolveJsonModule": true, // Allows importing JSON files as modules
     "forceConsistentCasingInFileNames": true, // Ensures that file names are treated with consistent casing, which is important for cross-platform compatibility.,
-    "noImplicitAny": true,
+    "noImplicitAny": true, // This option raises an error when TypeScript cannot infer a type for a variable, function parameter, or return value, and defaults to the any type.
     "noImplicitOverride": true, // This option requires that any method in a subclass that overrides a method in a superclass must explicitly use the override keyword.
     "noPropertyAccessFromIndexSignature": false, // This setting enforces that properties accessed via dot notation must be explicitly defined in the type.
     "allowUnreachableCode": false, // When set to false, this option raises errors for code that is unreachable, meaning it cannot be executed.
     "noFallthroughCasesInSwitch": true, // This option reports errors for switch statement cases that fall through without a break, return, or throw statement.
     "noErrorTruncation": true, // When enabled, this option prevents TypeScript from truncating error messages, providing full details about the error.
     "declaration": true, // Generates corresponding .d.ts file
-    "allowSyntheticDefaultImports": true,
-    "useUnknownInCatchVariables": true
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export.
+    "useUnknownInCatchVariables": true // This option enforces that catch clause variables must be explicitly typed as unknown.
   }
   // "include": ["src/**/*"],
   // "exclude": ["**/__tests__/*", "**/*config.ts", "node_modules", "dist"]

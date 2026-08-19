@@ -33,9 +33,6 @@ class RdsPlatform extends Platform<RdsPlatform> {
     super(log, configJson, homebridge);
     hap = homebridge.hap;
 
-    this.once('heartbeat', async () => {
-      await this.init();
-    });
     this.config = {
       name: 'RandomDelaySwitches',
     };
@@ -43,7 +40,6 @@ class RdsPlatform extends Platform<RdsPlatform> {
     this.rds = new RdsTypes(homebridge);
     this.handleError = handleError;
     this.handleErrorSync = handleErrorSync;
-    this.debug('Characteristics: %s', this.rds.Characteristics);
     this.validSwitches = [];
 
     // Set up general error handlers
@@ -79,6 +75,8 @@ class RdsPlatform extends Platform<RdsPlatform> {
 
       this.validSwitches = this.config.delaySwitches.map((switchConfig, index) => {
         const config: Partial<SwitchConfigType> = { cronString: '' };
+
+        // Set up the OptionParser for each delay-switch config
         const switchOptionParser = new OptionParser(config, true);
         switchOptionParser
           .stringKey('name', true)
@@ -96,6 +94,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
           .on('userInputError', (error: string) => {
             throw new TypeError(`config.json: delaySwitches[${index}]: ${error}`);
           });
+        // Parse the delay-switch config using the OptionParser
         switchOptionParser.parse(switchConfig);
         // Here we know that config is fully defined
         assert(is<Required<SwitchConfigType>>(config));
@@ -104,6 +103,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
           prefix: config.random ? 'Random ' : 'Fixed ',
           uuid: UUIDGen.generate(config.name),
         };
+        this.debug('Found switch: %s', switchSettings.name);
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
           switchSettings.infiniteRepeats = true;
@@ -113,15 +113,28 @@ class RdsPlatform extends Platform<RdsPlatform> {
         // Check if the cronString is valid
         const { isValid, allErrors } = checkCronString(switchSettings.cronString);
         if (!isValid) {
-          this.log('Error parsing cronString for', switchSettings.name);
+          this.warn('Error parsing cronString for', switchSettings.name);
           for (const error of allErrors) {
             this.error('cronString error:', error);
           }
         } else if (allErrors[0] !== undefined) {
-          this.log(allErrors[0]);
+          this.debug(`${switchSettings.name}: ${allErrors[0]}`);
+        } else {
+          this.debug(`${switchSettings.name}: Found valid cronString`);
         }
-        this.debug('Found switch: %s', switchSettings.name);
         return switchSettings;
+      });
+
+      // Configure the cron job logger to log to the Homebridge log file
+      setLogger({
+        info: (message) => this.log(message),
+        warn: (message) => this.warn(message),
+        error: (message, err) => this.error(err ?? message),
+        debug: (message, err) => this.error(err ?? message),
+      });
+
+      this.once('heartbeat', async () => {
+        await this.init();
       });
     } catch (error) {
       this.handleErrorSync({
@@ -131,17 +144,12 @@ class RdsPlatform extends Platform<RdsPlatform> {
       });
       return;
     }
-
-    // Configure the cron job logger to log to the Homebridge log file
-    setLogger({
-      info: (message) => this.log(message),
-      warn: (message) => this.warn(message),
-      error: (message, err) => this.error(err ?? message),
-      debug: (message, err) => this.error(err ?? message),
+    this.on('shutdown', async () => {
+      return this.shutdown();
     });
-    this.debug('config: %j', this.config);
   }
 
+  // Initialize the accessories
   async init() {
     const jobs = [];
 

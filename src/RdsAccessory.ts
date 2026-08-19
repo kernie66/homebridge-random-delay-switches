@@ -16,6 +16,9 @@ import MotionService from './MotionService.js';
 import SwitchService from './SwitchService.js';
 import { getTimestamp } from './utils/timeUtils.js';
 
+// oxlint-disable-next-line import/no-unassigned-import
+import 'homebridge-lib/ServiceDelegate/History';
+
 type RdsAccessoryValues = {
   delay: number;
   random: boolean;
@@ -51,16 +54,16 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
   constructor(platform: RdsPlatform, params: SwitchAccessoryParams) {
     super(platform, params);
     this.delay = params.delay;
-    this.random = params.random || false;
+    this.random = params.random ?? false;
     this.minDelay = this.random ? params.minDelay : '0';
-    this.disableSensor = params.disableSensor || false;
-    this.startOnReboot = params.startOnReboot || false;
-    this.singleActivation = params.singleActivation || false;
-    this.repeats = params.repeats || 0;
-    this.infiniteRepeats = params.infiniteRepeats || false;
+    this.disableSensor = params.disableSensor ?? false;
+    this.startOnReboot = params.startOnReboot ?? false;
+    this.singleActivation = params.singleActivation ?? false;
+    this.repeats = params.repeats ?? 0;
+    this.infiniteRepeats = params.infiniteRepeats ?? false;
     this.cronString = params.cronString;
     this.switchOn = this.startOnReboot;
-    this.heartrate = params.heartrate || 15;
+    this.heartrate = params.heartrate ?? 15;
     this.useConfig = params.useConfig;
     this.rds = platform.rds;
 

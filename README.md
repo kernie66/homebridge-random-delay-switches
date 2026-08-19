@@ -169,7 +169,7 @@ I also found that I used another plugin to trigger the delay switches by schedul
 
 - **When manually turning OFF the switch, the timer will stop and the motion sensor will NOT be triggered.**
 
-- **When the delay switch is getting ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed. This can be disabled by the `singleActivation` configuration.**
+- **If the delay switch is getting an ON command while it's already ON, the timer will restart and the motion sensor trigger will be delayed (not applicable for cron scheduled ON commands). This can be disabled by the `singleActivation` configuration.**
 
 - **If Homebridge or the plugin is restarted while a switch is active, the switch will continue the delay after the restart. This will override the `startOnReboot` configuration.**
 

@@ -1,6 +1,3 @@
-/** biome-ignore-all lint/style/useExportType: Don't export type in module declaration */
-/** biome-ignore-all lint/correctness/noUnusedVariables: Global types for homebridge-lib */
-
 declare module 'homebridge-lib/ServiceDelegate' {
   import type { Access, Characteristic, CharacteristicProps } from 'homebridge';
   import type { Delegate } from 'homebridge-lib/Delegate';

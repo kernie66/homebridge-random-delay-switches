@@ -1,6 +1,3 @@
-/** biome-ignore-all lint/style/useExportType: Typings for homebridge-lib */
-
-/** biome-ignore-all lint/suspicious/noExplicitAny: Use any initially */
 declare module 'homebridge-lib/Platform' {
   import type { Access, API, Categories, Characteristic, Formats, HAP, Logging, Perms, Units } from 'homebridge';
   import type { Delegate } from 'homebridge-lib/Delegate';

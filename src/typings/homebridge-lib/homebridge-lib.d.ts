@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/correctness/noUnusedVariables: Global types for homebridge-lib */
-
 // Global type declarations for homebridge-lib modules, to allow importing without TypeScript errors.
 // These declarations are necessary because homebridge-lib does not provide its own TypeScript type definitions.
 // Those commented out below are defined separately with more specific types in the src/typings directory, and are not

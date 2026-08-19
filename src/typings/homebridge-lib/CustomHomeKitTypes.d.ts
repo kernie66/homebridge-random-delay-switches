@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/style/useExportType: homebridge-lib typings */
 declare module 'homebridge-lib/CustomHomeKitTypes' {
   import type { Access, API, Characteristic, CharacteristicProps, Formats, Perms, Service, Units } from 'homebridge';
 

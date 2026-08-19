@@ -1,6 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: Converted from Typescript Playground */
-/** biome-ignore-all lint/complexity/noBannedTypes: Converted from Typescript Playground */
-
 declare module 'homebridge-lib/ServiceDelegate/History' {
   import type { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
   class History extends ServiceDelegate<null> {

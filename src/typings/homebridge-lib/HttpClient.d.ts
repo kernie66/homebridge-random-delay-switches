@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/style/useExportType: Types for homebridge-lib */
-
 declare module 'homebridge-lib/HttpClient' {
   import type { EventEmitter } from 'node:events';
 

@@ -1,52 +1,23 @@
 {
   "bridge": {
-    "name": "PluginTemplate",
-    "username": "AA:BB:CC:DD:EE:FF",
-    "port": 51826,
-    "pin": "031-45-154"
+    "name": "Homebridge E4CC",
+    "username": "0E:98:EC:53:BE:CC",
+    "port": 51624,
+    "pin": "249-56-927",
+    "advertiser": "bonjour-hap"
   },
-  "description": "HomeBridge HTTP Status Control",
-  "plugins": ["homebridge-telldus-too", "homebridge-config-ui-x"],
+  "accessories": [],
   "platforms": [
     {
       "name": "Config",
       "port": 8581,
-      "auth": "none",
-      "theme": "auto",
-      "tempUnits": "c",
-      "lang": "auto",
-      "sudo": false,
-      "platform": "config",
-      "debug": false
+      "platform": "config"
     },
     {
-      "name": "TelldusTooTest",
-      "ipAddress": "192.168.1.118",
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImF1ZCI6ImhvbWVicmlkZ2UtdGVsbGR1cyIsImV4cCI6MTc5ODc0NDkxOX0.eyJyZW5ldyI6dHJ1ZSwidHRsIjozMTUzNjAwMH0.uf9YpJGwv2NjlrAGcTchSGMxHTMQmwZOQok7LTm_3vQ",
-      "delay": 60,
-      "random": false,
-      "repeats": 0,
-      "lightbulb": false,
-      "dimmerAsSwitch": false,
-      "ignoreUnnamedSwitches": false,
-      "ignoreUnnamedSensors": false,
-      "configHeartrate": 300,
-      "randomize": false,
-      "_bridge": {
-        "name": "Homebridge Telldus Too",
-        "username": "0E:7B:E2:C2:31:65",
-        "port": 58984,
-        "manufacturer": "Telldus",
-        "firmwareRevision": "1.10.0",
-        "model": "Znet"
-      },
-      "platform": "TelldusToo"
-    },
-    {
-      "name": "RandomDelaySwitchesTest",
+      "name": "RandomDelaySwitches",
       "delaySwitches": [
         {
-          "name": "Tester",
+          "name": "Tester One",
           "delay": "60",
           "minDelay": "1",
           "random": false,
@@ -59,11 +30,12 @@
           "heartrate": 15
         },
         {
-          "name": "Tester Too",
+          "name": "Tester Two",
           "delay": "60",
           "minDelay": "1",
           "random": false,
           "useConfig": true,
+          "cronString": "30 */5 * * * *; 2-59/4 * * * *",
           "disableSensor": false,
           "startOnReboot": true,
           "singleActivation": false,
@@ -74,6 +46,5 @@
       ],
       "platform": "RandomDelaySwitches"
     }
-  ],
-  "accessories": []
+  ]
 }

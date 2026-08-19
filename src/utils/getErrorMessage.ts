@@ -6,7 +6,6 @@ export default function getErrorMessage(error?: unknown) {
   if (typeof error === 'string') {
     errorMessage = error;
   }
-
   if (error instanceof Error) {
     errorMessage = `${error.name}: ${error.message}`;
   }

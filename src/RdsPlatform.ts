@@ -7,7 +7,7 @@ import type { API, Logging } from 'homebridge';
 
 import { OptionParser } from 'homebridge-lib/OptionParser';
 import { Platform } from 'homebridge-lib/Platform';
-import { setLogger } from 'node-cron';
+import { setLogger, shutdown } from 'node-cron';
 import { once } from 'node:events';
 import { assert, is } from 'tsafe';
 
@@ -45,6 +45,21 @@ class RdsPlatform extends Platform<RdsPlatform> {
     this.handleErrorSync = handleErrorSync;
     this.debug('Characteristics: %s', this.rds.Characteristics);
     this.validSwitches = [];
+
+    // Set up general error handlers
+    // 1. Intercept Unhandled Promise Rejections (Operational Errors)
+    process.on('unhandledRejection', async (reason) => {
+      this.error('UNHANDLED REJECTION! 💥 Shutting down...', reason);
+      // Trigger graceful shutdown
+      await this.shutdown();
+    });
+
+    // 2. Intercept Uncaught Exceptions (Programmer Errors)
+    process.on('uncaughtException', async (error) => {
+      this.error('UNCAUGHT EXCEPTION! 💥 Shutting down...', error);
+      // Trigger graceful shutdown immediately
+      await this.shutdown();
+    });
 
     // Set up config parser for platform entries, store result in this.config
     const mainOptionParser = new OptionParser(this.config, true);
@@ -160,6 +175,11 @@ class RdsPlatform extends Platform<RdsPlatform> {
     }
     this.debug('initialised');
     this.emit('initialised');
+  }
+
+  async shutdown() {
+    await shutdown(1000);
+    this.log('Cleaned up cron jobs');
   }
 }
 

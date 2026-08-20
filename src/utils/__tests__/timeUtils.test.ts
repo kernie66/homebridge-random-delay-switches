@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
-import { getTimestamp, timeToEveDate, wait, syncWait } from '../timeUtils.js';
+import { getTimestamp, timeToEveDate, wait, syncWait, toTime } from '../timeUtils.js';
 
 process.env.TZ = 'Sweden/Stockholm';
 
@@ -27,6 +27,16 @@ describe('Test the time utility functions', () => {
   afterAll(() => {
     // reset mocked time
     vi.useRealTimers();
+  });
+
+  it('converts seconds to a duration', () => {
+    const time = toTime(3 * 24 * 3600 + 4 * 3600 + 15 * 60);
+    console.log('🚀 ~ time:', time);
+
+    expect(time.days).toEqual(3);
+    expect(time.hours).toEqual(4);
+    expect(time.minutes).toEqual(15);
+    expect(time.seconds).toEqual(0);
   });
 
   it('gets the current timestamp', () => {

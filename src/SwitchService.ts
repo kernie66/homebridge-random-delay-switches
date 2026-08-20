@@ -88,26 +88,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.acSignal = this.ac.signal;
     this.cronJobs = [];
 
-    this.log(
-      'SwitchService constructor called at %s',
-      Temporal.Now.zonedDateTimeISO()
-        .toLocaleString(undefined, {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          // dateStyle: 'medium',
-          // timeStyle: 'medium',
-          hour12: false,
-        })
-        .replace(/,/g, '')
-        .slice(0, 24),
-    );
-    this.log('Date equivalent: %s', String(new Date(new Date().toISOString())).slice(0, 24));
-
     // Convert delay and minDelay from strings to seconds
     let delayValue = toSeconds(switchAccessory.delay);
     if (delayValue > 863_999) {

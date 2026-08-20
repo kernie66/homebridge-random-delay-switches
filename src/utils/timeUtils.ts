@@ -12,23 +12,10 @@ export type Time = {
   seconds: number;
 };
 
-// Convert seconds to HH:MM:SS format
-export const toTime = (seconds: number) => {
-  const time: Time = {
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  };
-  let secondsLeft = seconds;
-  time.days = Math.trunc(seconds / (24 * 3600));
-  secondsLeft -= time.days * 24 * 3600;
-  time.hours = Math.trunc(secondsLeft / 3600);
-  secondsLeft -= time.hours * 3600;
-  time.minutes = Math.trunc(secondsLeft / 60);
-  secondsLeft -= time.minutes * 60;
-  time.seconds = secondsLeft;
-  return time;
+/** Convert seconds to DD:HH:MM:SS object format */
+export const toTime = (seconds: number): Temporal.Duration => {
+  const time = Temporal.Duration.from({ seconds });
+  return time.round({ largestUnit: 'days' });
 };
 
 // Convert DD:HH:MM:SS format to seconds, allowing for missing leading values (e.g., MM:SS or only seconds)

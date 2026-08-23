@@ -77,6 +77,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
         const config: Partial<SwitchConfigType> = { cronString: '' };
 
         // Set up the OptionParser for each delay-switch config
+        // The result is available in the `config` variable after parsing
         const switchOptionParser = new OptionParser(config, true);
         switchOptionParser
           .stringKey('name', true)
@@ -96,14 +97,24 @@ class RdsPlatform extends Platform<RdsPlatform> {
           });
         // Parse the delay-switch config using the OptionParser
         switchOptionParser.parse(switchConfig);
-        // Here we know that config is fully defined
+        // Here we know that 'config' is fully defined
         assert(is<Required<SwitchConfigType>>(config));
         const switchSettings: SwitchSettingType = {
           ...config,
+          delayDuration: Temporal.Duration.from({ seconds: 60 }),
+          minDelayDuration: Temporal.Duration.from({ seconds: 1 }),
           prefix: config.random ? 'Random ' : 'Fixed ',
           uuid: UUIDGen.generate(config.name),
         };
         this.debug('Found switch: %s', switchSettings.name);
+        // Convert 'delay' and 'minDelay' to Temporal.Duration
+        if (config.delay) {
+          switchSettings.delayDuration = Temporal.Duration.from({ seconds: parseInt(config.delay) });
+        }
+        if (config.minDelay) {
+          switchSettings.minDelayDuration = Temporal.Duration.from({ seconds: parseInt(config.minDelay) });
+        }
+
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
           switchSettings.infiniteRepeats = true;

@@ -5,8 +5,6 @@ import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 // oxlint-disable-next-line import/no-unassigned-import
 import 'temporal-polyfill/global';
 
-import getErrorMessage from './getErrorMessage.js';
-
 export type Time = {
   days: number;
   hours: number;
@@ -14,48 +12,50 @@ export type Time = {
   seconds: number;
 };
 
+// Regular expression to match delay in seconds (e.g., "30")
 const isDelaySeconds = /^\d+$/;
 
 /** Convert seconds string or DD:HH:MM:SS string to Temporal.Duration
  *
  * @param timeString - The time string to convert
  * @param maxDuration - Optional maximum valid value of the resulting duration
- * @returns An object containing the duration or any error that occurred
+ * @returns The converted duration or throws any error that occurred
  */
-export const toDuration = (timeString: string, maxDuration?: Temporal.Duration) => {
+export const toDuration = (timeString: string, options?: { maxDuration?: Temporal.Duration; clampToMax?: boolean }) => {
   let duration = Temporal.Duration.from({ seconds: 0 });
-  let error: string | undefined;
 
-  try {
-    // Check if the string is a delay in seconds (e.g., "30")
-    if (isDelaySeconds.test(timeString)) {
-      duration = Temporal.Duration.from({ seconds: Number.parseInt(timeString, 10) });
-    }
-    // Check if the string is in DD:HH:MM:SS format (e.g., "1:2:30:44")
-    else if (timeString.includes(':')) {
-      // Split the time string into an array of numbers, reverse it to get seconds first,
-      // and convert each value to an integer
-      const timeArray = timeString
-        .split(':')
-        .reverse()
-        .map((value) => Number.parseInt(value, 10));
-      duration = Temporal.Duration.from({
-        days: timeArray[3] ?? 0,
-        hours: timeArray[2] ?? 0,
-        minutes: timeArray[1] ?? 0,
-        seconds: timeArray[0] ?? 0,
-      });
-    } else {
-      throw new SyntaxError(`Invalid time string: ${timeString}`);
-    }
-    if (maxDuration && Temporal.Duration.compare(duration, maxDuration) > 0) {
-      throw new RangeError(`Duration exceeds maximum: ${duration.toLocaleString()} > ${maxDuration.toLocaleString()}`);
-    }
-    duration = duration.round({ largestUnit: 'days' });
-  } catch (e) {
-    error = getErrorMessage(e);
+  // Check if the string is a delay in seconds (e.g., "30")
+  if (isDelaySeconds.test(timeString)) {
+    duration = Temporal.Duration.from({ seconds: Number.parseInt(timeString, 10) });
   }
-  return { duration, error };
+  // Check if the string is in DD:HH:MM:SS format (e.g., "1:2:30:44")
+  else if (timeString.includes(':')) {
+    // Split the time string into an array of numbers, reverse it to get seconds first,
+    // and convert each value to an integer
+    const timeArray = timeString
+      .split(':')
+      .reverse()
+      .map((value) => Number.parseInt(value, 10));
+    duration = Temporal.Duration.from({
+      days: timeArray[3] ?? 0,
+      hours: timeArray[2] ?? 0,
+      minutes: timeArray[1] ?? 0,
+      seconds: timeArray[0] ?? 0,
+    });
+  } else {
+    throw new SyntaxError(`Invalid time string: ${timeString}`);
+  }
+  if (options?.maxDuration && Temporal.Duration.compare(duration, options.maxDuration) > 0) {
+    if (options.clampToMax) {
+      duration = options.maxDuration;
+    } else {
+      throw new RangeError(
+        `Duration exceeds maximum: ${duration.toLocaleString()} > ${options.maxDuration.toLocaleString()}`,
+      );
+    }
+  }
+  duration = duration.round({ largestUnit: 'days' });
+  return duration;
 };
 
 /** Convert seconds to DD:HH:MM:SS object format */
@@ -65,20 +65,26 @@ export const toTime = (seconds: number) => {
 };
 
 // Convert DD:HH:MM:SS format to seconds, allowing for missing leading values (e.g., MM:SS or only seconds)
-export const toSeconds = (timeString: string) => {
-  // Split the time string into an array of numbers, reverse it to get seconds first,
-  // and convert each value to an integer
-  const timeArray = timeString
-    .split(':')
-    .reverse()
-    .map((value) => Number.parseInt(value, 10));
-  const multiplier = [1, 60, 60 * 60, 24 * 60 * 60] as const; // SS, MM, HH, DD
-  const seconds = timeArray.reduce((acc, value, index) => {
-    if (multiplier[index]) {
-      return acc + value * multiplier[index];
-    }
-    return acc;
-  });
+export const toSeconds = (time: string | Temporal.Duration) => {
+  let seconds = 0;
+  if (typeof time === 'string') {
+    // Split the time string into an array of numbers, reverse it to get seconds first,
+    // and convert each value to an integer
+    const timeArray = time
+      .split(':')
+      .reverse()
+      .map((value) => Number.parseInt(value, 10));
+    const multiplier = [1, 60, 60 * 60, 24 * 60 * 60] as const; // SS, MM, HH, DD
+    seconds = timeArray.reduce((acc, value, index) => {
+      if (multiplier[index]) {
+        return acc + value * multiplier[index];
+      }
+      return acc;
+    });
+  }
+  if (time instanceof Temporal.Duration) {
+    seconds = time.total({ unit: 'seconds' });
+  }
   return seconds;
 };
 

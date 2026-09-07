@@ -9,20 +9,28 @@ import { OptionParser } from 'homebridge-lib/OptionParser';
 import { Platform } from 'homebridge-lib/Platform';
 import { setLogger, shutdown } from 'node-cron';
 import { once } from 'node:events';
+import valid from 'semver/functions/valid.js';
 import { assert, is } from 'tsafe';
 
 import type { ConfigJson } from './typings/ConfigJsonTypes.js';
-import type { SwitchAccessoryParams, SwitchConfigType, SwitchSettingType } from './typings/SwitchTypes.js';
 
 import RdsAccessory from './RdsAccessory.js';
 import RdsTypes from './RdsTypes.js';
+import {
+  maxDelayDuration,
+  type SwitchAccessoryParams,
+  type SwitchConfigType,
+  type SwitchSettingType,
+} from './typings/SwitchTypes.js';
 import { checkCronString } from './utils/cronUtils.js';
 import { handleError, handleErrorSync } from './utils/handleError.js';
+import { toDuration } from './utils/timeUtils.js';
 
 let hap: API['hap'];
 
 class RdsPlatform extends Platform<RdsPlatform> {
   config: Partial<ConfigJson>;
+  firmwareVersion: string;
   rds: RdsTypes;
   switchAccessories!: Record<string, RdsAccessory>;
   handleError: typeof handleError<RdsPlatform>;
@@ -37,6 +45,7 @@ class RdsPlatform extends Platform<RdsPlatform> {
       name: 'RandomDelaySwitches',
     };
     const UUIDGen = hap.uuid;
+    this.firmwareVersion = valid(this.packageJson.version) ?? '1.0.0';
     this.rds = new RdsTypes(homebridge);
     this.handleError = handleError;
     this.handleErrorSync = handleErrorSync;
@@ -44,17 +53,23 @@ class RdsPlatform extends Platform<RdsPlatform> {
 
     // Set up general error handlers
     // 1. Intercept Unhandled Promise Rejections (Operational Errors)
-    process.on('unhandledRejection', async (reason) => {
-      this.error('UNHANDLED REJECTION! 💥 Shutting down...', reason);
+    process.on('unhandledRejection', async (reason: string | Error) => {
+      this.error('UNHANDLED REJECTION! 💥 Shutting down...');
+      this.log('Sorry for the inconvenience, please file an issue on GitHub with the details below');
+      this.error(reason);
       // Trigger graceful shutdown
-      await this.shutdown();
+      await this.rdsShutdown();
+      return;
     });
 
     // 2. Intercept Uncaught Exceptions (Programmer Errors)
     process.on('uncaughtException', async (error) => {
-      this.error('UNCAUGHT EXCEPTION! 💥 Shutting down...', error);
+      this.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+      this.log('Sorry for the inconvenience, please file an issue on GitHub with the details below');
+      this.error(error);
       // Trigger graceful shutdown immediately
-      await this.shutdown();
+      await this.rdsShutdown();
+      return;
     });
 
     // Set up config parser for platform entries, store result in this.config
@@ -66,6 +81,10 @@ class RdsPlatform extends Platform<RdsPlatform> {
       .on('userInputError', (error: string) => {
         throw new TypeError(`config.json: ${error}`);
       });
+
+    // Ensure that any thrown errors are caught and handled gracefully
+    // If the config is invalid, the parser and following checks will throw an error,
+    // which we catch here
     try {
       // Parse the platform config and validate required fields
       mainOptionParser.parse(configJson);
@@ -73,8 +92,10 @@ class RdsPlatform extends Platform<RdsPlatform> {
       this.switchAccessories = {};
       assert(is<SwitchConfigType[]>(this.config.delaySwitches));
 
+      // Validate and parse each switch config using the OptionParser
       this.validSwitches = this.config.delaySwitches.map((switchConfig, index) => {
-        const config: Partial<SwitchConfigType> = { cronString: '' };
+        // Initialize the config with default values where needed
+        const config: Partial<SwitchConfigType> = { delay: '60', minDelay: '1', cronString: '' };
 
         // Set up the OptionParser for each delay-switch config
         // The result is available in the `config` variable after parsing
@@ -108,12 +129,11 @@ class RdsPlatform extends Platform<RdsPlatform> {
         };
         this.debug('Found switch: %s', switchSettings.name);
         // Convert 'delay' and 'minDelay' to Temporal.Duration
-        if (config.delay) {
-          switchSettings.delayDuration = Temporal.Duration.from({ seconds: parseInt(config.delay) });
-        }
-        if (config.minDelay) {
-          switchSettings.minDelayDuration = Temporal.Duration.from({ seconds: parseInt(config.minDelay) });
-        }
+        switchSettings.delayDuration = toDuration(config.delay, { maxDuration: maxDelayDuration });
+        switchSettings.minDelayDuration = toDuration(config.minDelay, {
+          maxDuration: switchSettings.delayDuration,
+          clampToMax: true,
+        });
 
         // Backwards compatibility: 'repeats' = -1 meant infinite repeats
         if (config.repeats === -1) {
@@ -147,6 +167,8 @@ class RdsPlatform extends Platform<RdsPlatform> {
       this.once('heartbeat', async () => {
         await this.init();
       });
+
+      // Error handler for any configuration errors
     } catch (error) {
       this.handleErrorSync({
         header: 'Config Error',
@@ -156,7 +178,8 @@ class RdsPlatform extends Platform<RdsPlatform> {
       return;
     }
     this.on('shutdown', async () => {
-      return this.shutdown();
+      await this.rdsShutdown();
+      return;
     });
   }
 
@@ -168,15 +191,15 @@ class RdsPlatform extends Platform<RdsPlatform> {
       assert(is<SwitchSettingType>(delaySwitch));
       const switchParams: SwitchAccessoryParams = {
         category: this.Accessory.Categories.SWITCH,
-        firmware: '1.0.0',
+        firmware: this.firmwareVersion,
         cronString: delaySwitch.cronString,
-        delay: delaySwitch.delay,
+        delay: delaySwitch.delayDuration,
         disableSensor: delaySwitch.disableSensor,
         heartrate: delaySwitch.heartrate,
         id: delaySwitch.uuid,
         infiniteRepeats: delaySwitch.infiniteRepeats,
         manufacturer: 'Homebridge',
-        minDelay: delaySwitch.minDelay,
+        minDelay: delaySwitch.minDelayDuration,
         model: `${delaySwitch.prefix}Delay-${delaySwitch.delay}s`,
         name: delaySwitch.name,
         random: delaySwitch.random,
@@ -196,9 +219,16 @@ class RdsPlatform extends Platform<RdsPlatform> {
     this.emit('initialised');
   }
 
-  async shutdown() {
+  async rdsShutdown() {
+    // Clean up cron jobs
     await shutdown(1000);
     this.log('Cleaned up cron jobs');
+    // Abort any active delay timers
+    for (const accessory of Object.values(this.switchAccessories)) {
+      accessory.switchService.ac.abort();
+    }
+    this.log('Aborted active delay timers');
+    this.log('Shutdown complete');
   }
 }
 

@@ -10,7 +10,6 @@ import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 import type RdsAccessory from './RdsAccessory.js';
 import type RdsTypes from './RdsTypes.js';
 import type { SwitchServiceParams } from './typings/SwitchTypes.js';
-import type { Time } from './utils/timeUtils.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
@@ -60,7 +59,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   rds: RdsTypes;
   delay: number;
   minDelay: number;
-  time: Time;
+  time: Temporal.Duration;
   timeUp: boolean;
   timeLeft: number;
   minDelayPercentage: number;
@@ -89,35 +88,14 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.cronJobs = [];
 
     // Convert delay and minDelay from strings to seconds
-    let delayValue = toSeconds(switchAccessory.delay);
-    if (delayValue > 863_999) {
-      delayValue = 863_999;
-      this.warn('Too large delay time, set to maximum allowed (10 days)');
-    }
-    this.debug('Delay value: %s', delayValue);
-    this.delay = Math.max(0, delayValue);
+    this.delay = toSeconds(switchAccessory.delay);
+    this.debug('Delay value: %s', this.delay);
 
-    let minDelayValue = 1;
-    this.debug('Min delay config: %s', switchAccessory.minDelay);
-    if (switchAccessory.minDelay) {
-      minDelayValue = toSeconds(switchAccessory.minDelay);
-      if (minDelayValue > delayValue) {
-        minDelayValue = delayValue;
-        this.warn('Too large minimum delay time, set equal to delay time');
-      }
-    }
-    this.debug('Min delay value: %s', minDelayValue);
-    this.minDelay = Math.max(0, minDelayValue);
+    this.minDelay = toSeconds(switchAccessory.minDelay);
+    this.debug('Min delay value: %s', this.minDelay);
 
     this.time = toTime(this.delay);
-    this.debug(
-      'Seconds to time: %s = %s days and %s:%s:%s',
-      this.delay,
-      this.time.days,
-      this.time.hours,
-      this.time.minutes,
-      this.time.seconds,
-    );
+    this.debug('Delay is: ', switchAccessory.delay.toLocaleString());
     this.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
     this.debug('Min delay = %d%', this.minDelayPercentage);
 
@@ -325,7 +303,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.continueSwitch(switchAccessory);
     }
     // Check if switch is to be set after a start of the plugin
-    else if (this.values.startOnReboot) {
+    else if (this.startOnReboot) {
       this.initSwitch();
     }
     // Else make sure we have a clean start, no abort controllers

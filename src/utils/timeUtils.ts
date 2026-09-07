@@ -5,13 +5,6 @@ import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 // oxlint-disable-next-line import/no-unassigned-import
 import 'temporal-polyfill/global';
 
-export type Time = {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-};
-
 // Regular expression to match delay in seconds (e.g., "30")
 const isDelaySeconds = /^\d+$/;
 
@@ -58,14 +51,24 @@ export const toDuration = (timeString: string, options?: { maxDuration?: Tempora
   return duration;
 };
 
-/** Convert seconds to DD:HH:MM:SS object format */
+/**
+ * Converts a number of seconds to a Temporal.Duration .
+ *
+ * @param seconds - The number of seconds to convert.
+ * @returns A Temporal.Duration object representing the input seconds in days, hours, minutes and seconds.
+ */
 export const toTime = (seconds: number) => {
   const time = Temporal.Duration.from({ seconds });
   return time.round({ largestUnit: 'days' });
 };
 
-// Convert DD:HH:MM:SS format to seconds, allowing for missing leading values (e.g., MM:SS or only seconds)
-export const toSeconds = (time: string | Temporal.Duration) => {
+/**
+ * Converts a time format (string or Temporal.Duration) to seconds.
+ *
+ * @param time - The time to convert, either as a string in the format "DD:HH:MM:SS" or a Temporal.Duration.
+ * @returns The time as a Temporal.Duration in seconds.
+ */
+export const toSeconds = (time: string | Temporal.Duration): number => {
   let seconds = 0;
   if (typeof time === 'string') {
     // Split the time string into an array of numbers, reverse it to get seconds first,

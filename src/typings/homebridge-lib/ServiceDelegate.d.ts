@@ -8,6 +8,7 @@ declare module 'homebridge-lib/ServiceDelegate' {
   class ServiceDelegate<P, T> extends Delegate<P> {
     name: string;
     silent?: boolean;
+    hidden?: boolean;
     values: T;
 
     static History: typeof History;

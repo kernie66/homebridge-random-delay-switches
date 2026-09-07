@@ -17,11 +17,11 @@
       "name": "RandomDelaySwitches",
       "delaySwitches": [
         {
-          "name": "Tester One",
+          "name": "Tester Ett",
           "delay": "60",
           "minDelay": "1",
           "random": false,
-          "useConfig": true,
+          "useConfig": false,
           "disableSensor": false,
           "startOnReboot": false,
           "singleActivation": false,
@@ -30,7 +30,7 @@
           "heartrate": 15
         },
         {
-          "name": "Tester Two",
+          "name": "Tester Två",
           "delay": "60",
           "minDelay": "1",
           "random": false,
@@ -38,6 +38,19 @@
           "cronString": "30 */5 * * * *; 2-59/4 * * * *",
           "disableSensor": false,
           "startOnReboot": true,
+          "singleActivation": false,
+          "repeats": 0,
+          "infiniteRepeats": false,
+          "heartrate": 15
+        },
+        {
+          "name": "Tester Tre",
+          "delay": "60",
+          "minDelay": "1",
+          "random": true,
+          "useConfig": false,
+          "disableSensor": true,
+          "startOnReboot": false,
           "singleActivation": false,
           "repeats": 0,
           "infiniteRepeats": false,

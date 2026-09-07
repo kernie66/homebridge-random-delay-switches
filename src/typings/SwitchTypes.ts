@@ -20,6 +20,8 @@ export type SwitchConfigType = {
   useConfig: boolean;
 };
 
+export const maxDelayDuration = Temporal.Duration.from({ days: 10 });
+
 export type SwitchSettingType = {
   prefix: string;
   uuid: string;
@@ -28,9 +30,9 @@ export type SwitchSettingType = {
 } & Required<SwitchConfigType>;
 
 export type SwitchAccessoryParams = {
-  delay: string;
+  delay: Temporal.Duration;
+  minDelay: Temporal.Duration;
   random: boolean;
-  minDelay: string;
   disableSensor: boolean;
   startOnReboot: boolean;
   singleActivation: boolean;
@@ -44,5 +46,6 @@ export type SwitchAccessoryParams = {
 export type SwitchServiceParams = {
   name?: string;
   primaryService?: boolean;
+  hidden?: boolean;
   Service?: Service;
 };

@@ -18,6 +18,8 @@ import { getTimestamp } from './utils/timeUtils.js';
 
 // oxlint-disable-next-line import/no-unassigned-import
 import 'homebridge-lib/ServiceDelegate/History';
+// oxlint-disable-next-line import/no-unassigned-import
+import 'temporal-polyfill';
 
 type RdsAccessoryValues = {
   delay: number;
@@ -34,9 +36,9 @@ type RdsAccessoryValues = {
 };
 
 export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAccessoryValues> {
-  delay: string;
+  delay: Temporal.Duration;
+  minDelay: Temporal.Duration;
   random: boolean;
-  minDelay: string;
   disableSensor: boolean;
   startOnReboot: boolean;
   singleActivation: boolean;
@@ -55,7 +57,7 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
     super(platform, params);
     this.delay = params.delay;
     this.random = params.random ?? false;
-    this.minDelay = this.random ? params.minDelay : '0';
+    this.minDelay = this.random ? params.minDelay : Temporal.Duration.from({ seconds: 1 });
     this.disableSensor = params.disableSensor ?? false;
     this.startOnReboot = params.startOnReboot ?? false;
     this.singleActivation = params.singleActivation ?? false;
@@ -74,13 +76,15 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
 
     if (!this.disableSensor) {
       this.motionService = new MotionService(this, {
-        name: this.name,
+        name: this.name, // + ' Motion',
+        hidden: true,
       });
       this.historyService = new ServiceDelegate.History(this, {
         motionDelegate: this.motionService.characteristicDelegate('motion'),
         lastMotionDelegate: this.motionService.characteristicDelegate('lastActivation'),
       });
     }
+
     this.debug('Accessory initialised');
     this.heartbeatEnabled = true;
     setImmediate(() => {
@@ -89,8 +93,12 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
     this.on('heartbeat', async (beat: number): Promise<void> => {
       await this.heartbeat(beat);
     });
+    this.on('identify', () => {
+      this.log('Identify OK, current delay:', this.delay.toLocaleString());
+    });
     this.on('shutdown', async () => {
-      return this.shutdown();
+      await this.shutdown();
+      return;
     });
   }
 

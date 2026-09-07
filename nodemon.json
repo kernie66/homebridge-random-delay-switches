@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["src/", "test/hbConfig/config.json"],
   "ext": "js,ts",
   "ignore": [],
   "exec": "tsc && homebridge -U ./test/hbConfig -D",

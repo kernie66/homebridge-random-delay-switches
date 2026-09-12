@@ -58,8 +58,16 @@ export const toDuration = (timeString: string, options?: { maxDuration?: Tempora
  * @returns A Temporal.Duration object representing the input seconds in days, hours, minutes and seconds.
  */
 export const toTime = (seconds: number) => {
-  const time = Temporal.Duration.from({ seconds });
+  const time = Temporal.Duration.from({ seconds: Math.round(seconds) });
   return time.round({ largestUnit: 'days' });
+};
+
+export const toHumanTime = (time: number | Temporal.Duration) => {
+  if (time === 0) return '0 sec';
+  if (typeof time === 'number') {
+    return toTime(time).toLocaleString();
+  }
+  return time.toLocaleString();
 };
 
 /**

@@ -13,7 +13,7 @@ import type RdsTypes from './RdsTypes.js';
 import type { SwitchAccessoryParams } from './typings/SwitchTypes.js';
 
 import MotionService from './MotionService.js';
-import SwitchService from './SwitchService.js';
+import SwitchService, { setTimeString } from './SwitchService.js';
 import { getTimestamp } from './utils/timeUtils.js';
 
 // oxlint-disable-next-line import/no-unassigned-import
@@ -109,7 +109,8 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
   async heartbeat(beat: number) {
     if (beat % this.switchService.values.heartrate === 0) {
       if (this.switchService.values.timestamp > 0 && this.switchService.switchOn) {
-        this.switchService.values.timeLeft = this.switchService.values.timestamp - getTimestamp();
+        this.switchService.timeLeft = this.switchService.values.timestamp - getTimestamp();
+        this.switchService.values.timeLeft = setTimeString(this.switchService.timeLeft);
       }
     }
   }

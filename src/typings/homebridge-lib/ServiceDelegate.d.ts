@@ -13,12 +13,14 @@ declare module 'homebridge-lib/ServiceDelegate' {
 
     static History: typeof History;
 
-    addCharacteristicDelegate(params: {
+    addCharacteristicDelegate<T>(params: {
       Characteristic: Characteristic;
       key: string;
       props?: Partial<CharacteristicProps>;
       silent?: boolean;
-      value?: unknown;
+      value?: number | string | boolean;
+      getter?: () => Promise<number | string | boolean>;
+      setter?: (value: number | string | boolean) => Promise<typeof value>;
     }): CharacteristicDelegate;
 
     characteristicDelegate(key: string): CharacteristicDelegate;

@@ -34,9 +34,11 @@ type RdsCharacteristics = {
   Delay: Characteristic;
   MinDelay: Characteristic;
   TimeOut: Characteristic;
+  TimeOutString: Characteristic;
   Repeats: Characteristic;
   Repetition: Characteristic;
   TimeLeft: Characteristic;
+  TimeLeftString: Characteristic;
   Timestamp: Characteristic;
   Random: Characteristic;
   InfiniteRepeats: Characteristic;
@@ -92,6 +94,16 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
     );
 
     this.createCharacteristicClass(
+      'TimeOutString',
+      uuid('0A8'),
+      {
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
+      },
+      'Current timeout value',
+    );
+
+    this.createCharacteristicClass(
       'Repeats',
       uuid('0A3'),
       {
@@ -123,6 +135,16 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
         minValue: 0,
         perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
         unit: this.Units.SECONDS,
+      },
+      'Time left of timer',
+    );
+
+    this.createCharacteristicClass(
+      'TimeLeftString',
+      uuid('0A7'),
+      {
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
       },
       'Time left of timer',
     );
@@ -241,7 +263,7 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
         format: this.Formats.STRING,
         perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY, this.Perms.PAIRED_WRITE],
       },
-      'Cron',
+      'Cron input',
     );
 
     this.createCharacteristicClass(

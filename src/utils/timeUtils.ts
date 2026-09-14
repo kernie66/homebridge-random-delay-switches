@@ -82,7 +82,7 @@ export const toHumanTime = (time: number | Temporal.Duration | Temporal.Instant)
  * @param time - The time to convert, either as a string in the format "DD:HH:MM:SS" or a Temporal.Duration.
  * @returns The time as a Temporal.Duration in seconds.
  */
-export const toSeconds = (time: string | Temporal.Duration): number => {
+export const toSeconds = (time: string | Temporal.Duration | Temporal.Instant): number => {
   let seconds = 0;
   if (typeof time === 'string') {
     // Split the time string into an array of numbers, reverse it to get seconds first,
@@ -101,6 +101,9 @@ export const toSeconds = (time: string | Temporal.Duration): number => {
   }
   if (time instanceof Temporal.Duration) {
     seconds = time.total({ unit: 'seconds' });
+  }
+  if (time instanceof Temporal.Instant) {
+    seconds = Math.round(time.epochMilliseconds / 1000);
   }
   return seconds;
 };

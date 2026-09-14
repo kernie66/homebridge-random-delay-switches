@@ -10,6 +10,20 @@ const testEveDate = 'Sun May 04 2025 14:04:25';
 const isoString = '2026-06-12T15:16:17.180Z';
 const testIsoEveDate = 'Fri Jun 12 2026 15:16:17';
 
+function mockSystemTime() {
+  // Define the TZ environment variable to use a fixed time zone for tests
+  vi.stubEnv('TZ', 'Sweden/Stockholm');
+  // Mock the Date object/system time
+  const mockDate = new Date(testDateTime);
+  vi.setSystemTime(mockDate);
+}
+
+function restoreSystemTime() {
+  // reset mocked time
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+}
+
 function getTestTimestamp() {
   const now = new Date();
   const testTimestampInSeconds = now.getTime() / 1000;
@@ -102,6 +116,14 @@ describe('Test the duration conversion functions', () => {
     expect(seconds).toEqual(3 * 24 * 3600 + 4 * 3600 + 15 * 60);
   });
 
+  it('converts temporal instant to seconds', () => {
+    mockSystemTime();
+    const testTimestampInSeconds = getTestTimestamp();
+    const instant = Temporal.Now.instant();
+    const instantInSeconds = toSeconds(instant);
+    expect(instantInSeconds).toBe(testTimestampInSeconds);
+  });
+
   it('converts DD:HH:MM:SS to seconds', () => {
     const seconds = toSeconds('03:04:15:30');
     expect(seconds).toEqual(3 * 24 * 3600 + 4 * 3600 + 15 * 60 + 30);
@@ -109,19 +131,21 @@ describe('Test the duration conversion functions', () => {
 });
 
 describe('Test the time utility functions', () => {
-  beforeAll(() => {
-    // Define the TZ environment variable to use a fixed time zone for tests
-    vi.stubEnv('TZ', 'Sweden/Stockholm');
-    // Mock the Date object/system time
-    const mockDate = new Date(testDateTime);
-    vi.setSystemTime(mockDate);
-  });
+  beforeAll(() => mockSystemTime());
+  //   () => {
+  //   // Define the TZ environment variable to use a fixed time zone for tests
+  //   vi.stubEnv('TZ', 'Sweden/Stockholm');
+  //   // Mock the Date object/system time
+  //   const mockDate = new Date(testDateTime);
+  //   vi.setSystemTime(mockDate);
+  // });
 
-  afterAll(() => {
-    // reset mocked time
-    vi.unstubAllEnvs();
-    vi.useRealTimers();
-  });
+  afterAll(() => restoreSystemTime());
+  // {
+  //   // reset mocked time
+  //   vi.unstubAllEnvs();
+  //   vi.useRealTimers();
+  // });
 
   it('gets the current timestamp', () => {
     const testTimestampInSeconds = getTestTimestamp();

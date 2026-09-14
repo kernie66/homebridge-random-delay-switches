@@ -162,6 +162,16 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
     );
 
     this.createCharacteristicClass(
+      'DelayEnd',
+      uuid('0A8'),
+      {
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
+      },
+      'Delay ends at',
+    );
+
+    this.createCharacteristicClass(
       'Random',
       uuid('0A9'),
       {

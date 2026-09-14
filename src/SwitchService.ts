@@ -13,7 +13,7 @@ import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
-import { getTimestamp, toHumanTime, toSeconds, toTime, wait } from './utils/timeUtils.js';
+import { getTimestamp, setDuration, timeToEveDate, toHumanTime, toSeconds, toTime, wait } from './utils/timeUtils.js';
 // oxlint-disable-next-line import/no-unassigned-import
 import 'temporal-polyfill/global';
 
@@ -66,8 +66,9 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   delay: number;
   minDelay: number;
   delayTime: Temporal.Duration;
+  delayEnd: Temporal.Instant;
   timeUp: boolean;
-  timeout: number;
+  timeout: Temporal.Duration;
   timeLeft: number;
   minDelayPercentage: number;
   ac: AbortController;
@@ -90,8 +91,9 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.disableSensor = switchAccessory.disableSensor;
     this.rds = switchAccessory.rds;
     this.timeUp = false;
-    this.timeout = 0;
+    this.timeout = setDuration(0);
     this.timeLeft = 0;
+    this.delayEnd = getTimestamp({ asTemporal: true });
     this.ac = new AbortController();
     this.acSignal = this.ac.signal;
     this.cronJobs = [];
@@ -198,7 +200,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.addCharacteristicDelegate({
       Characteristic: this.rds.Characteristics.TimeLeftString,
       key: 'timeLeft',
-      value: setTimeString(0),
+      value: toHumanTime(this.delayEnd),
       silent: true,
     });
 
@@ -441,12 +443,12 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
           this.warn('Error when restarting timer: %s', message);
         }
         this.timeUp = true;
-        this.timeout = 0;
+        this.timeout = setDuration(0);
         this.timeLeft = 0;
       }
       // Check if this is a continued start after restart
       if (delayValue) {
-        this.timeout = delayValue;
+        this.timeout = setDuration(delayValue);
         delayType = 'continued';
       } else {
         if (this.values.minDelay > this.values.delay) {
@@ -454,29 +456,29 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
         }
         // Set the delay time and type
         if (this.values.random) {
-          this.timeout = Math.round(
-            this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay) + 1,
+          this.timeout = setDuration(
+            Math.round(this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay) + 1),
           );
           delayType = 'random';
         } else if (!this.values.delay) {
-          this.timeout = 0;
+          this.timeout = setDuration(-1);
           delayType = 'stateful';
         } else {
-          this.timeout = this.values.delay;
+          this.timeout = setDuration(this.values.delay);
           delayType = 'fixed';
         }
       }
       // Set the timeout value to show in Eve
-      this.values.timeout = setTimeString(this.timeout);
+      this.values.timeout = toHumanTime(this.timeout);
 
       // Set the Unix timestamp for the end of the delay
-      this.values.timestamp = getTimestamp() + this.timeout;
+      this.values.timestamp = getTimestamp({ offset: this.timeout });
       this.log('Starting the timer with %s delay: %s', delayType, this.values.timeout);
       this.timeUp = false;
-      this.timeLeft = this.timeout;
-      this.values.timeLeft = setTimeString(this.timeLeft);
+      // this.timeLeft = this.timeout;
+      this.values.timeLeft = timeToEveDate(this.delayEnd);
       try {
-        await wait(this.timeout, this.acSignal);
+        await wait(this.timeout.seconds, this.acSignal);
         this.log('Time is up!');
         this.timeUp = true;
         this.timeLeft = 0;

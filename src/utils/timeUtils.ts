@@ -52,7 +52,7 @@ export const toDuration = (timeString: string, options?: { maxDuration?: Tempora
 };
 
 /**
- * Converts a number of seconds to a Temporal.Duration .
+ * Converts a number of seconds to a Temporal.Duration.
  *
  * @param seconds - The number of seconds to convert.
  * @returns A Temporal.Duration object representing the input seconds in days, hours, minutes and seconds.
@@ -62,7 +62,13 @@ export const toTime = (seconds: number) => {
   return time.round({ largestUnit: 'days' });
 };
 
-export const toHumanTime = (time: number | Temporal.Duration) => {
+/**
+ * Converts a time representation to a human-readable format
+ *
+ * @param time - The time in different representations, timestamp number or Temporal object
+ * @returns A string that is readable
+ */
+export const toHumanTime = (time: number | Temporal.Duration | Temporal.Instant) => {
   if (time === 0) return '0 sec';
   if (typeof time === 'number') {
     return toTime(time).toLocaleString();
@@ -99,8 +105,49 @@ export const toSeconds = (time: string | Temporal.Duration): number => {
   return seconds;
 };
 
-/** Get the current timestamp in seconds since the Unix epoch. */
-export const getTimestamp = () => Math.round(Temporal.Now.instant().epochMilliseconds / 1000);
+// 1. Separate interfaces
+interface TimestampWithTemporal {
+  asTemporal: true;
+  offset?: Temporal.Duration;
+}
+interface TimestampWithNumber {
+  asTemporal?: false;
+  offset?: Temporal.Duration;
+}
+
+// 2. Define standard function overloads
+export function getTimestamp(options: TimestampWithTemporal): Temporal.Instant;
+export function getTimestamp(options?: TimestampWithNumber): number;
+
+// 3. Implement the function (The return type here combines both options)
+/**
+ * Get the timestamp in seconds since the Unix epoch.
+ *
+ * @param options - Config object containing offset and asTemporal flag.
+ * @returns The timestamp as a Temporal.Instant or a number.
+ */
+export function getTimestamp({ asTemporal = false, ...options }: TimestampWithTemporal | TimestampWithNumber = {}):
+  | Temporal.Instant
+  | number {
+  let tempTimestamp = Temporal.Now.instant();
+  let timestamp = tempTimestamp;
+
+  if (options.offset) {
+    timestamp = tempTimestamp.add(options.offset);
+  }
+
+  // TypeScript allows this narrowing automatically here!
+  if (asTemporal) {
+    return timestamp;
+  }
+
+  return Math.round(timestamp.epochMilliseconds / 1000);
+}
+
+/** Convert a number of seconds to a Temporal.Duration. */
+export const setDuration = (time: number) => {
+  return Temporal.Duration.from({ seconds: time });
+};
 
 /** Format options for Eve display date/time. */
 const eveDateFormat: Intl.DateTimeFormatOptions = {
@@ -121,11 +168,11 @@ const formatEveDate = (date: Temporal.Instant): string => {
 
 /** Convert different time formats to Eve display format
  *
- * @param time - The ISO time string, timestamp in seconds or Date object to convert.
+ * @param time - The ISO time string, timestamp in seconds, Date object, or Temporal.Instant to convert.
  * If not provided, the current date and time will be used.
  * @returns The Eve display format string.
  */
-export const timeToEveDate = (time?: string | number | Date): string => {
+export const timeToEveDate = (time?: string | number | Date | Temporal.Instant): string => {
   let timestamp = Temporal.Now.instant();
 
   if (time instanceof Date) {
@@ -139,6 +186,9 @@ export const timeToEveDate = (time?: string | number | Date): string => {
   }
   if (typeof time === 'number') {
     timestamp = Temporal.Instant.fromEpochMilliseconds(time * 1000);
+  }
+  if (time instanceof Temporal.Instant) {
+    timestamp = time;
   }
   return formatEveDate(timestamp);
 };

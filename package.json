@@ -71,12 +71,12 @@
     "tsgolint": "^0.0.1",
     "type-fest": "^5.9.0",
     "typescript": "^7.0.2",
-    "vite-plus": "0.3.0",
+    "vite-plus": "0.3.2",
     "vitest": "4.1.11",
     "vitest-mock-extended": "^5.1.1"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.0",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.2",
     "vitest": "4.1.11"
   },
   "devEngines": {

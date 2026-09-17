@@ -31,6 +31,28 @@ function getTestTimestamp() {
 }
 
 describe('Test the duration conversion functions', () => {
+  it('converts delay number in seconds to temporal duration', () => {
+    const duration = toDuration(123_456);
+
+    // console.log('Duration:', duration?.toLocaleString());
+    expect(duration).toBeDefined();
+    expect(duration.days).toEqual(1);
+    expect(duration.hours).toEqual(10);
+    expect(duration.minutes).toEqual(17);
+    expect(duration.seconds).toEqual(36);
+  });
+
+  it('converts negative delay number in seconds to temporal duration', () => {
+    const duration = toDuration(-1);
+
+    // console.log('Duration:', duration?.toLocaleString());
+    expect(duration).toBeDefined();
+    expect(duration.days).toEqual(0);
+    expect(duration.hours).toEqual(0);
+    expect(duration.minutes).toEqual(0);
+    expect(duration.seconds).toEqual(-1);
+  });
+
   it('converts delay string in seconds to temporal duration', () => {
     const duration = toDuration('123456');
 
@@ -96,9 +118,9 @@ describe('Test the duration conversion functions', () => {
     expect(() => toDuration('A30:01')).toThrow('Non-finite minutes: NaN');
     expect(() => toDuration('::')).toThrow('Non-finite hours: NaN');
     expect(() => toDuration('30.01')).toThrow(SyntaxError);
-    expect(() => toDuration('30.01')).toThrow('Invalid time string: 30.01');
-    expect(() => toDuration('')).toThrow('Invalid time string: ');
-    expect(() => toDuration('kalle')).toThrow('Invalid time string: kalle');
+    expect(() => toDuration('30.01')).toThrow('Invalid time value: 30.01');
+    expect(() => toDuration('')).toThrow('Invalid time value: ');
+    expect(() => toDuration('kalle')).toThrow('Invalid time value: kalle');
   });
 
   it('converts seconds to temporal duration', () => {
@@ -132,25 +154,29 @@ describe('Test the duration conversion functions', () => {
 
 describe('Test the time utility functions', () => {
   beforeAll(() => mockSystemTime());
-  //   () => {
-  //   // Define the TZ environment variable to use a fixed time zone for tests
-  //   vi.stubEnv('TZ', 'Sweden/Stockholm');
-  //   // Mock the Date object/system time
-  //   const mockDate = new Date(testDateTime);
-  //   vi.setSystemTime(mockDate);
-  // });
-
   afterAll(() => restoreSystemTime());
-  // {
-  //   // reset mocked time
-  //   vi.unstubAllEnvs();
-  //   vi.useRealTimers();
-  // });
 
-  it('gets the current timestamp', () => {
+  it('gets the current timestamp as number', () => {
     const testTimestampInSeconds = getTestTimestamp();
     const timestamp = getTimestamp();
     expect(timestamp).toBe(testTimestampInSeconds);
+  });
+
+  it('gets the current timestamp as number with offset', () => {
+    const testTimestampInSeconds = getTestTimestamp();
+    let offset = Temporal.Duration.from({ seconds: 10 });
+    let timestamp = getTimestamp({ offset });
+    expect(timestamp).toBe(testTimestampInSeconds + 10);
+    // Check that offset in days is converted correctly
+    offset = Temporal.Duration.from({ days: 10 });
+    timestamp = getTimestamp({ offset });
+    expect(timestamp).toBe(testTimestampInSeconds + 10 * 24 * 3600);
+  });
+
+  it('gets the current timestamp as Temporal.Instant', () => {
+    const testTimestampInSeconds = getTestTimestamp();
+    const timestamp = getTimestamp({ asTemporal: true });
+    expect(timestamp.epochMilliseconds / 1000).toBe(testTimestampInSeconds);
   });
 
   it('gets the timestamp in Eve display format', () => {

@@ -8,24 +8,28 @@ import 'temporal-polyfill/global';
 // Regular expression to match delay in seconds (e.g., "30")
 const isDelaySeconds = /^\d+$/;
 
-/** Convert seconds string or DD:HH:MM:SS string to Temporal.Duration
+/** Convert seconds number, string or DD:HH:MM:SS string to Temporal.Duration
  *
- * @param timeString - The time string to convert
+ * @param time - The time value to convert
  * @param maxDuration - Optional maximum valid value of the resulting duration
  * @returns The converted duration or throws any error that occurred
  */
-export const toDuration = (timeString: string, options?: { maxDuration?: Temporal.Duration; clampToMax?: boolean }) => {
+export const toDuration = (
+  time: string | number,
+  options?: { maxDuration?: Temporal.Duration; clampToMax?: boolean },
+) => {
   let duration = Temporal.Duration.from({ seconds: 0 });
 
-  // Check if the string is a delay in seconds (e.g., "30")
-  if (isDelaySeconds.test(timeString)) {
-    duration = Temporal.Duration.from({ seconds: Number.parseInt(timeString, 10) });
+  if (typeof time === 'number') {
+    duration = Temporal.Duration.from({ seconds: time });
+  } else if (isDelaySeconds.test(time)) {
+    duration = Temporal.Duration.from({ seconds: Number.parseInt(time, 10) });
   }
   // Check if the string is in DD:HH:MM:SS format (e.g., "1:2:30:44")
-  else if (timeString.includes(':')) {
+  else if (time.includes(':')) {
     // Split the time string into an array of numbers, reverse it to get seconds first,
     // and convert each value to an integer
-    const timeArray = timeString
+    const timeArray = time
       .split(':')
       .reverse()
       .map((value) => Number.parseInt(value, 10));
@@ -36,7 +40,7 @@ export const toDuration = (timeString: string, options?: { maxDuration?: Tempora
       seconds: timeArray[0] ?? 0,
     });
   } else {
-    throw new SyntaxError(`Invalid time string: ${timeString}`);
+    throw new SyntaxError(`Invalid time value: ${time}`);
   }
   if (options?.maxDuration && Temporal.Duration.compare(duration, options.maxDuration) > 0) {
     if (options.clampToMax) {
@@ -123,8 +127,8 @@ export function getTimestamp(options: TimestampWithTemporal): Temporal.Instant;
 export function getTimestamp(options?: TimestampWithNumber): number;
 
 // 3. Implement the function (The return type here combines both options)
-/**
- * Get the timestamp in seconds since the Unix epoch.
+
+/** Get the timestamp in seconds since the Unix epoch.
  *
  * @param options - Config object containing offset and asTemporal flag.
  * @returns The timestamp as a Temporal.Instant or a number.
@@ -135,8 +139,10 @@ export function getTimestamp({ asTemporal = false, ...options }: TimestampWithTe
   let tempTimestamp = Temporal.Now.instant();
   let timestamp = tempTimestamp;
 
+  // Add the offset to the timestamp if specified
+  // The offset must not include days, as Temporal.Instant does not support it
   if (options.offset) {
-    timestamp = tempTimestamp.add(options.offset);
+    timestamp = tempTimestamp.add({ seconds: options.offset.total('seconds') });
   }
 
   // TypeScript allows this narrowing automatically here!
@@ -146,11 +152,6 @@ export function getTimestamp({ asTemporal = false, ...options }: TimestampWithTe
 
   return Math.round(timestamp.epochMilliseconds / 1000);
 }
-
-/** Convert a number of seconds to a Temporal.Duration. */
-export const setDuration = (time: number) => {
-  return Temporal.Duration.from({ seconds: time });
-};
 
 /** Format options for Eve display date/time. */
 const eveDateFormat: Intl.DateTimeFormatOptions = {

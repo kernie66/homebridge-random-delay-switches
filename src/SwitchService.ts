@@ -13,7 +13,7 @@ import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
-import { getTimestamp, setDuration, timeToEveDate, toHumanTime, toSeconds, toTime, wait } from './utils/timeUtils.js';
+import { getTimestamp, toDuration, timeToEveDate, toHumanTime, toSeconds, toTime, wait } from './utils/timeUtils.js';
 // oxlint-disable-next-line import/no-unassigned-import
 import 'temporal-polyfill/global';
 
@@ -68,8 +68,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   delayTime: Temporal.Duration;
   delayEnd: Temporal.Instant;
   timeUp: boolean;
-  timeout: Temporal.Duration;
-  timeLeft: number;
   minDelayPercentage: number;
   ac: AbortController;
   acSignal: AbortSignal;
@@ -91,8 +89,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.disableSensor = switchAccessory.disableSensor;
     this.rds = switchAccessory.rds;
     this.timeUp = false;
-    this.timeout = setDuration(0);
-    this.timeLeft = 0;
     this.delayEnd = getTimestamp({ asTemporal: true });
     this.ac = new AbortController();
     this.acSignal = this.ac.signal;
@@ -156,8 +152,8 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayDays',
       value: this.delayTime.days,
     }).on('didSet', (value: number) => {
-      this.values.delay =
-        value * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
+      this.delayTime = this.delayTime.with({ days: value });
+      this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
@@ -166,8 +162,8 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayHours',
       value: this.delayTime.hours,
     }).on('didSet', (value: number) => {
-      this.values.delay =
-        this.values.delayDays * 24 * 3600 + value * 3600 + this.values.delayMinutes * 60 + this.values.delaySeconds;
+      this.delayTime = this.delayTime.with({ hours: value });
+      this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
@@ -176,8 +172,8 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayMinutes',
       value: this.delayTime.minutes,
     }).on('didSet', (value: number) => {
-      this.values.delay =
-        this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + value * 60 + this.values.delaySeconds;
+      this.delayTime = this.delayTime.with({ minutes: value });
+      this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
@@ -186,8 +182,8 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delaySeconds',
       value: this.delayTime.seconds,
     }).on('didSet', (value: number) => {
-      this.values.delay =
-        this.values.delayDays * 24 * 3600 + this.values.delayHours * 3600 + this.values.delayMinutes * 60 + value;
+      this.delayTime = this.delayTime.with({ seconds: value });
+      this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
     });
 
@@ -416,6 +412,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     // before the switch is started
     await wait(0.1);
     let delayType = '';
+    let timeout = toDuration(0);
     // Check if switch is turned off
     if (!this.switchOn) {
       // Check if the timer is active
@@ -428,7 +425,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
           this.warn('Error when aborting timer: %s', message);
         }
         this.timeUp = true;
-        this.timeLeft = 0;
       }
       // Actions when switch is turned on
     } else {
@@ -443,49 +439,50 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
           this.warn('Error when restarting timer: %s', message);
         }
         this.timeUp = true;
-        this.timeout = setDuration(0);
-        this.timeLeft = 0;
+        timeout = toDuration(0);
       }
       // Check if this is a continued start after restart
       if (delayValue) {
-        this.timeout = setDuration(delayValue);
+        timeout = toDuration(delayValue);
         delayType = 'continued';
       } else {
         if (this.values.minDelay > this.values.delay) {
           this.values.minDelay = this.values.delay;
         }
         // Set the delay time and type
-        if (this.values.random) {
-          this.timeout = setDuration(
-            Math.round(this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay) + 1),
+        if (!this.values.delay) {
+          timeout = toDuration(0);
+          delayType = 'stateful';
+        } else if (this.values.random) {
+          timeout = toDuration(
+            Math.max(1, Math.round(this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay))),
           );
           delayType = 'random';
-        } else if (!this.values.delay) {
-          this.timeout = setDuration(-1);
-          delayType = 'stateful';
         } else {
-          this.timeout = setDuration(this.values.delay);
+          timeout = toDuration(this.values.delay);
           delayType = 'fixed';
         }
       }
       // Set the timeout value to show in Eve
-      this.values.timeout = toHumanTime(this.timeout);
+      this.values.timeout = toHumanTime(timeout);
+
+      // Determine the end of the delay
+      this.delayEnd = getTimestamp({ asTemporal: true, offset: timeout });
 
       // Set the Unix timestamp for the end of the delay
-      this.values.timestamp = getTimestamp({ offset: this.timeout });
+      this.values.timestamp = toSeconds(this.delayEnd);
       this.log('Starting the timer with %s delay: %s', delayType, this.values.timeout);
       this.timeUp = false;
-      // this.timeLeft = this.timeout;
+      // this.timeLeft = timeout;
       this.values.timeLeft = timeToEveDate(this.delayEnd);
       try {
-        await wait(this.timeout.seconds, this.acSignal);
+        await wait(timeout.total('seconds'), this.acSignal);
         this.log('Time is up!');
         this.timeUp = true;
-        this.timeLeft = 0;
         this.values.timeLeft = setTimeString(0);
         this.values.timestamp = 0;
         // Only turn off the switch if delay > 0, else stateful switch
-        if (this.timeout) {
+        if (timeout.total('seconds') > 0) {
           this.values.on = false;
           this.switchOn = false;
         }
@@ -515,7 +512,6 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
         }
         this.values.repetition = 0;
         this.timeUp = true;
-        this.timeLeft = 0;
         this.values.timeLeft = setTimeString(0);
         this.values.timestamp = 0;
       }

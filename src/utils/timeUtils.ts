@@ -122,17 +122,17 @@ interface TimestampWithNumber {
   offset?: Temporal.Duration;
 }
 
+/** Get the timestamp in seconds since the Unix epoch.
+ *
+ * @param options - Config object containing offset and asTemporal flag.
+ * @returns The timestamp as a Temporal.Instant or a number.
+ */
 // 2. Define standard function overloads
 export function getTimestamp(options: TimestampWithTemporal): Temporal.Instant;
 export function getTimestamp(options?: TimestampWithNumber): number;
 
 // 3. Implement the function (The return type here combines both options)
 
-/** Get the timestamp in seconds since the Unix epoch.
- *
- * @param options - Config object containing offset and asTemporal flag.
- * @returns The timestamp as a Temporal.Instant or a number.
- */
 export function getTimestamp({ asTemporal = false, ...options }: TimestampWithTemporal | TimestampWithNumber = {}):
   | Temporal.Instant
   | number {
@@ -202,7 +202,7 @@ export const timeToEveDate = (time?: string | number | Date | Temporal.Instant):
  * Returns a promise that resolves after the specified number of seconds.
  * The timer can be aborted using an {@link AbortSignal}.
  */
-export const wait = async (seconds: number, signal?: AbortSignal) => {
+export const waitSeconds = async (seconds: number, signal?: AbortSignal) => {
   const timeout = Math.round(seconds * 1000);
   return setTimeoutPromise(timeout, 'Timeout reached', { signal });
 };

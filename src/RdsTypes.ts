@@ -40,6 +40,7 @@ type RdsCharacteristics = {
   TimeLeft: Characteristic;
   TimeLeftString: Characteristic;
   Timestamp: Characteristic;
+  DelayEnd: Characteristic;
   Random: Characteristic;
   InfiniteRepeats: Characteristic;
   DelayDays: Characteristic;
@@ -51,6 +52,16 @@ type RdsCharacteristics = {
   Cron: Characteristic;
   Default: Characteristic;
 };
+
+// Eve 3.1 displays the following controls, depending on the properties:
+// 1. {minValue: 0, maxValue: 1, minStep: 1}                    switch
+// 2. {minValue: a, maxValue: b, minStep: 1}, 1 < b - a <= 20   down|up
+// 3. {minValue: a, maxValue: b}, (a, b) != (0, 1)              slider
+// 4. {minValue: a, maxValue: b, minStep: 1}, b - a > 20        slider
+// Avoid the following bugs:
+// 5. {minValue: 0, maxValue: 1}                                nothing
+// 6. {minValue: a, maxValue: b, minStep: 1}, b - a = 1         switch*
+//    *) switch sends values 0 and 1 instead of a and b;
 
 export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
   constructor(homebridge: API) {
@@ -82,19 +93,6 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
 
     this.createCharacteristicClass(
       'TimeOut',
-      uuid('0A2'),
-      {
-        format: this.Formats.UINT32,
-        minValue: 0,
-        unit: this.Units.SECONDS,
-        //      maxValue: 3600,
-        perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],
-      },
-      'Current timeout value',
-    );
-
-    this.createCharacteristicClass(
-      'TimeOutString',
       uuid('0A8'),
       {
         format: this.Formats.STRING,
@@ -163,7 +161,7 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
 
     this.createCharacteristicClass(
       'DelayEnd',
-      uuid('0A8'),
+      uuid('0B3'),
       {
         format: this.Formats.STRING,
         perms: [this.Perms.PAIRED_READ, this.Perms.NOTIFY],

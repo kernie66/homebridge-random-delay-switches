@@ -13,7 +13,15 @@ import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
-import { getTimestamp, toDuration, timeToEveDate, toHumanTime, toSeconds, toTime, wait } from './utils/timeUtils.js';
+import {
+  getTimestamp,
+  toDuration,
+  timeToEveDate,
+  toHumanTime,
+  toSeconds,
+  toTime,
+  waitSeconds,
+} from './utils/timeUtils.js';
 // oxlint-disable-next-line import/no-unassigned-import
 import 'temporal-polyfill/global';
 
@@ -26,8 +34,8 @@ type SwitchServiceValues = {
   delayHours: number;
   delayMinutes: number;
   delaySeconds: number;
+  delayEnd: string;
   timeout: string;
-  timeLeft: string;
   timestamp: number;
   random: boolean;
   disableSensor: boolean;
@@ -44,11 +52,7 @@ type SwitchServiceValues = {
   setDefault: boolean;
 };
 
-export const setTimeString = (value: number): string => {
-  const timeString = toHumanTime(value);
-  console.log('setTimeString: %s, from: %d', timeString, value);
-  return timeString;
-};
+type DelayType = 'fixed' | 'random' | 'stateful' | 'continued' | 'unknown';
 
 export default class SwitchService extends ServiceDelegate<RdsAccessory['platform'], SwitchServiceValues> {
   random: boolean;
@@ -67,7 +71,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   minDelay: number;
   delayTime: Temporal.Duration;
   delayEnd: Temporal.Instant;
-  timeUp: boolean;
+  timerActive: boolean;
   minDelayPercentage: number;
   ac: AbortController;
   acSignal: AbortSignal;
@@ -88,34 +92,38 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.useConfig = switchAccessory.useConfig;
     this.disableSensor = switchAccessory.disableSensor;
     this.rds = switchAccessory.rds;
-    this.timeUp = false;
+    this.timerActive = false;
     this.delayEnd = getTimestamp({ asTemporal: true });
     this.ac = new AbortController();
     this.acSignal = this.ac.signal;
     this.cronJobs = [];
 
+    this.debug('** Switch configuration **');
     // Convert delay and minDelay from Temporal.Duration to seconds
     this.delay = toSeconds(switchAccessory.delay);
-    this.debug('Delay value: %s', this.delay);
+    this.debug('Delay value (config): %s', this.delay);
 
     this.minDelay = toSeconds(switchAccessory.minDelay);
-    this.debug('Min delay value: %s', this.minDelay);
+    this.debug('Min delay value (config): %s', this.minDelay);
 
-    this.debug('Delay is: ', switchAccessory.delay.toLocaleString());
+    this.debug('Delay from config is:', switchAccessory.delay.toLocaleString());
     this.minDelayPercentage = Math.round((this.minDelay / this.delay) * 100);
-    this.debug('Min delay = %d%', this.minDelayPercentage);
+    this.debug('Min delay = %d %', this.minDelayPercentage);
 
     this.addCharacteristicDelegate({
       Characteristic: this.Characteristics.hap.On,
       key: 'on',
       value: false,
     })
-      .on('didSet', (value: boolean) => {
+      .on('didSet', async (value: boolean) => {
+        await waitSeconds(0.1);
         this.switchOn = value;
         this.debug("Calling 'setOn' with value %s", this.switchOn);
         void this.setOn(switchAccessory);
+        return value;
       })
-      .on('didTouch', (value: boolean) => {
+      .on('didTouch', async (value: boolean) => {
+        await waitSeconds(0.1);
         if (!this.singleActivation) {
           this.switchOn = value;
           this.debug("Repeat 'setOn' with value %s", this.switchOn);
@@ -123,6 +131,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
         } else {
           this.debug('Multiple activations disabled');
         }
+        return value;
       });
 
     this.addCharacteristicDelegate({
@@ -130,6 +139,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delay',
       value: this.delay,
     });
+    this.debug('Persisted delay:', toHumanTime(this.values.delay));
 
     this.addCharacteristicDelegate({
       Characteristic: this.rds.Characteristics.MinDelay,
@@ -188,16 +198,15 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     });
 
     this.addCharacteristicDelegate({
-      Characteristic: this.rds.Characteristics.TimeOutString,
+      Characteristic: this.rds.Characteristics.TimeOut,
       key: 'timeout',
-      value: setTimeString(0),
+      value: 'Not set',
     });
 
     this.addCharacteristicDelegate({
-      Characteristic: this.rds.Characteristics.TimeLeftString,
-      key: 'timeLeft',
-      value: toHumanTime(this.delayEnd),
-      silent: true,
+      Characteristic: this.rds.Characteristics.DelayEnd,
+      key: 'delayEnd',
+      value: 'Not set',
     });
 
     this.addCharacteristicDelegate({
@@ -224,7 +233,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       if (value === -1) {
         void (async () => {
           this.values.infiniteRepeats = true;
-          await wait(0.1);
+          await waitSeconds(0.1);
           this.values.repeats = 0;
           this.log('Reverted repeats = -1 to infinite repeats');
         })();
@@ -308,7 +317,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.startCronJobs();
 
     // Check if the switch was on before plugin started and not stateful
-    if (this.values.on && this.values.delay) {
+    if (this.values.on && this.values.timestamp > 0) {
       this.continueSwitch(switchAccessory);
     }
     // Check if switch is to be set after a start of the plugin
@@ -317,7 +326,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     }
     // Else make sure we have a clean start, no abort controllers
     else {
-      this.timeUp = true;
+      this.timerActive = false;
     }
   }
 
@@ -345,8 +354,8 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     // Check if a valid schedule was set
     if (schedule !== 'Schedule disabled') {
       const { cronJobs, nextDatesArray } = runCronJobs(cronArray, () => {
-        this.debug(`timeUp: ${this.timeUp}, switchOn: ${this.switchOn}`);
-        if (!this.timeUp || this.switchOn) {
+        this.debug(`timerActive: ${this.timerActive}, switchOn: ${this.switchOn}`);
+        if (this.timerActive || this.switchOn) {
           this.log('Triggered cron job skipped, switch delay already in progress');
         } else {
           this.log('Cron job triggered');
@@ -369,7 +378,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
 
   initSwitch() {
     void (async () => {
-      await wait(100);
+      await waitSeconds(1);
       this.log('Start the timer at reboot');
       this.values.on = true;
     })();
@@ -377,14 +386,17 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
 
   continueSwitch(switchAccessory: RdsAccessory) {
     void (async () => {
-      await wait(100);
+      await waitSeconds(1);
       this.log('Switch was on at reboot');
+      this.log('Originally set to end at %s', timeToEveDate(this.values.timestamp));
       this.switchOn = true; // Set to enable restart of timer
-      this.timeUp = true; // Set to not try to abort the abort controller
+      this.timerActive = false; // Clear to not try to abort the abort controller
+
       // Check if time left is less than 5 seconds, then use 5 seconds
       const delayValue = Math.max(this.values.timestamp - getTimestamp(), 5);
-      this.log('Delay time left = %d', delayValue);
+      this.log('Delay time left set to %s', toHumanTime(delayValue));
       void this.setOn(switchAccessory, delayValue);
+      this.debug('Switch continued...');
     })();
   }
 
@@ -402,119 +414,137 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.values.repeats = this.repeats;
       this.values.cron = this.cronString;
       this.values.heartrate = this.heartrate;
-      await wait(0.5);
+      await waitSeconds(0.5);
       this.values.setDefault = false;
     })();
   }
 
-  async setOn(switchAccessory: RdsAccessory, delayValue: number = 0) {
+  async setOn(switchAccessory: RdsAccessory, continueDelayValue: number = 0) {
     // Add a delay so that values can be changed in scenes
     // before the switch is started
-    await wait(0.1);
-    let delayType = '';
+    await waitSeconds(0.1);
+    let delayType: DelayType = 'unknown';
     let timeout = toDuration(0);
+
     // Check if switch is turned off
     if (!this.switchOn) {
       // Check if the timer is active
-      if (!this.timeUp) {
+      if (this.timerActive) {
         try {
-          this.debug('Aborting the timer before time is up');
+          this.debug('Aborting the timer due to switch being turned off before time is up');
           this.ac.abort();
         } catch (error) {
           const message = getErrorMessage(error);
           this.warn('Error when aborting timer: %s', message);
         }
-        this.timeUp = true;
-      }
-      // Actions when switch is turned on
-    } else {
-      // Check if timer is already active
-      if (!this.timeUp) {
-        try {
-          this.log('Restarting/extending the timer...');
-          this.ac.abort();
-          await wait(0.5); // Wait for the abort to complete
-        } catch (error) {
-          const message = getErrorMessage(error);
-          this.warn('Error when restarting timer: %s', message);
-        }
-        this.timeUp = true;
-        timeout = toDuration(0);
-      }
-      // Check if this is a continued start after restart
-      if (delayValue) {
-        timeout = toDuration(delayValue);
-        delayType = 'continued';
-      } else {
-        if (this.values.minDelay > this.values.delay) {
-          this.values.minDelay = this.values.delay;
-        }
-        // Set the delay time and type
-        if (!this.values.delay) {
-          timeout = toDuration(0);
-          delayType = 'stateful';
-        } else if (this.values.random) {
-          timeout = toDuration(
-            Math.max(1, Math.round(this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay))),
-          );
-          delayType = 'random';
-        } else {
-          timeout = toDuration(this.values.delay);
-          delayType = 'fixed';
-        }
-      }
-      // Set the timeout value to show in Eve
-      this.values.timeout = toHumanTime(timeout);
-
-      // Determine the end of the delay
-      this.delayEnd = getTimestamp({ asTemporal: true, offset: timeout });
-
-      // Set the Unix timestamp for the end of the delay
-      this.values.timestamp = toSeconds(this.delayEnd);
-      this.log('Starting the timer with %s delay: %s', delayType, this.values.timeout);
-      this.timeUp = false;
-      // this.timeLeft = timeout;
-      this.values.timeLeft = timeToEveDate(this.delayEnd);
-      try {
-        await wait(timeout.total('seconds'), this.acSignal);
-        this.log('Time is up!');
-        this.timeUp = true;
-        this.values.timeLeft = setTimeString(0);
+        this.values.repetition = 0;
+        this.values.delayEnd = 'Not set';
         this.values.timestamp = 0;
-        // Only turn off the switch if delay > 0, else stateful switch
-        if (timeout.total('seconds') > 0) {
-          this.values.on = false;
-          this.switchOn = false;
-        }
-        if (!this.disableSensor) {
-          this.log('Triggering motion sensor');
-          switchAccessory.emit('trigger', true);
-        }
-        if (this.values.repetition < this.values.repeats || this.values.infiniteRepeats) {
-          await wait(2); // Wait for the motion to complete, 2 s
-          this.values.repetition += 1;
-          this.log(
-            'Restart, repetition number: %d of %s',
-            this.values.repetition,
-            this.values.infiniteRepeats ? 'infinite' : this.values.repeats,
-          );
-          this.values.on = true;
-        } else {
-          this.values.repetition = 0;
-        }
+        this.timerActive = false;
+      }
+      this.debug('Switch turned off');
+      return;
+    }
+
+    // **** Actions when switch is turned on ****
+
+    // Check if timer is already active
+    if (this.timerActive) {
+      try {
+        this.log('Restarting/extending the timer...');
+        this.ac.abort();
+        await waitSeconds(0.5); // Wait for the abort to complete
       } catch (error) {
         const message = getErrorMessage(error);
-
-        if (message) {
-          this.log('The current timer was stopped', message);
-        } else {
-          this.warn('The timer was aborted! %s', message);
-        }
-        this.values.repetition = 0;
-        this.timeUp = true;
-        this.values.timeLeft = setTimeString(0);
-        this.values.timestamp = 0;
+        this.warn('Error when restarting timer: %s', message);
       }
+      this.timerActive = false;
+      timeout = toDuration(0);
+    }
+
+    // Determine the type of delay and the corresponding timeout
+    // If continueDelayValue is provided, use it as the timeout and set delayType to 'continued'
+    if (continueDelayValue) {
+      delayType = 'continued';
+      timeout = toDuration(continueDelayValue);
+    }
+    // If delay is 0, this is a stateful switch
+    else if (this.values.delay === 0) {
+      delayType = 'stateful';
+      timeout = toDuration(0);
+    }
+    // If random is set, calculate the random delay to use
+    else if (this.values.random) {
+      delayType = 'random';
+      timeout = toDuration(
+        Math.max(1, Math.round(this.values.minDelay + Math.random() * (this.values.delay - this.values.minDelay))),
+      );
+    }
+    // Otherwise, use the fixed delay
+    else {
+      delayType = 'fixed';
+      timeout = toDuration(this.values.delay);
+    }
+
+    // Exit early for stateful switches
+    if (delayType === 'stateful') {
+      this.values.timeout = 'Stateful';
+      this.debug('Stateful switch turned on');
+      return;
+    }
+
+    // Set the timeout value to show in Eve
+    this.values.timeout = toHumanTime(timeout);
+
+    // Determine the end of the delay
+    this.delayEnd = getTimestamp({ asTemporal: true, offset: timeout });
+    this.values.delayEnd = timeToEveDate(this.delayEnd);
+
+    // Set the Unix timestamp for the end of the delay
+    this.values.timestamp = toSeconds(this.delayEnd);
+    this.log('Starting the timer with %s delay: %s', delayType, this.values.timeout);
+
+    try {
+      this.timerActive = true;
+      await waitSeconds(timeout.total('seconds'), this.acSignal);
+      this.log('Time is up for %s switch!', delayType);
+      this.values.delayEnd = 'Not set';
+      this.values.timestamp = 0;
+      this.values.on = false;
+      this.switchOn = false;
+      this.timerActive = false;
+
+      // Trigger motion sensor if enabled
+      if (!this.disableSensor) {
+        this.log('Triggering motion sensor');
+        switchAccessory.emit('trigger', true);
+      }
+
+      // Check if the switch should repeat
+      if (this.values.repetition < this.values.repeats || this.values.infiniteRepeats) {
+        await waitSeconds(3); // Wait for the motion to complete, 3 s
+        this.values.repetition += 1;
+        this.log(
+          'Restart, repetition number: %d of %s',
+          this.values.repetition,
+          this.values.infiniteRepeats ? 'infinite' : this.values.repeats,
+        );
+        this.values.on = true;
+      } else {
+        this.values.repetition = 0;
+      }
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      if (message) {
+        this.log('The current timer was stopped', message);
+      } else {
+        this.warn('The timer was aborted! %s', message);
+      }
+      this.values.repetition = 0;
+      this.timerActive = false;
+      this.values.delayEnd = 'Not set';
+      this.values.timestamp = 0;
     }
   }
 }

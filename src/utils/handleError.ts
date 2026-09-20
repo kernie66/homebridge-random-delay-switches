@@ -4,7 +4,7 @@ import figlet from 'figlet';
 import { setTimeout } from 'node:timers/promises';
 
 import getErrorMessage from './getErrorMessage.js';
-import { syncWait, wait } from './timeUtils.js';
+import { syncWait, waitSeconds } from './timeUtils.js';
 
 type HandleErrorParams = {
   waitMinutes?: number;
@@ -36,7 +36,7 @@ export async function handleError<P>(
   if (error) {
     const errorMessage = getErrorMessage(error);
     this.log(errorMessage);
-    await wait(0.01); // Small delay to ensure the error message is logged before the reason message is displayed
+    await waitSeconds(0.01); // Small delay to ensure the error message is logged before the reason message is displayed
   }
   if (reason) {
     this.warn(reason);

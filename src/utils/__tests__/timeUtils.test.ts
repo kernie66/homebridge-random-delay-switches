@@ -1,7 +1,7 @@
 import { Temporal } from 'temporal-polyfill';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
-import { getTimestamp, timeToEveDate, wait, syncWait, toTime, toDuration, toSeconds } from '../timeUtils.js';
+import { getTimestamp, timeToEveDate, waitSeconds, syncWait, toTime, toDuration, toSeconds } from '../timeUtils.js';
 
 // Use Date() in tests to verify that the Temporal API and polyfill
 // gives the same results as Date()
@@ -206,7 +206,7 @@ describe('Test the time utility functions', () => {
   it('waits for a specified time (asynchronous)', async () => {
     vi.useRealTimers();
     const startTime = Date.now();
-    await wait(0.5);
+    await waitSeconds(0.5);
     const endTime = Date.now();
     expect(endTime - startTime).toBeGreaterThanOrEqual(500);
   });
@@ -215,7 +215,7 @@ describe('Test the time utility functions', () => {
     vi.useRealTimers();
     const controller = new AbortController();
     const startTime = Date.now();
-    const result = await wait(0.1, controller.signal);
+    const result = await waitSeconds(0.1, controller.signal);
     const endTime = Date.now();
     expect(result).toBe('Timeout reached');
     expect(endTime - startTime).toBeGreaterThanOrEqual(100);

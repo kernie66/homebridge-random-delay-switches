@@ -75,6 +75,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
   minDelayPercentage: number;
   ac: AbortController;
   acSignal: AbortSignal;
+  muteDelaySwitch: boolean;
 
   constructor(switchAccessory: RdsAccessory, params: SwitchServiceParams) {
     params.name = switchAccessory.name;
@@ -97,6 +98,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
     this.ac = new AbortController();
     this.acSignal = this.ac.signal;
     this.cronJobs = [];
+    this.muteDelaySwitch = false;
 
     this.debug('** Switch configuration **');
     // Convert delay and minDelay from Temporal.Duration to seconds
@@ -116,15 +118,28 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       value: false,
     })
       .on('didSet', async (value: boolean) => {
+        this.debug('didSet switchOn=%s, timerActive=%s', this.switchOn, this.timerActive);
         await waitSeconds(0.1);
-        this.switchOn = value;
-        this.debug("Calling 'setOn' with value %s", this.switchOn);
-        void this.setOn(switchAccessory);
+        if (this.muteDelaySwitch) {
+          if (this.values.on != this.switchOn) {
+            this.values.on = this.switchOn;
+          }
+        } else {
+          this.muteDelaySwitch = true;
+          this.switchOn = value;
+          this.debug("Calling 'setOn' with value %s", this.switchOn);
+          void this.setOn(switchAccessory);
+        }
         return value;
       })
       .on('didTouch', async (value: boolean) => {
-        await waitSeconds(0.1);
-        if (!this.singleActivation) {
+        this.debug('didTouch switchOn=%s, timerActive=%s', this.switchOn, this.timerActive);
+        // await waitSeconds(0.1);
+        if (this.muteDelaySwitch) {
+          if (this.values.on != this.switchOn) {
+            this.values.on = this.switchOn;
+          }
+        } else if (!this.singleActivation) {
           this.switchOn = value;
           this.debug("Repeat 'setOn' with value %s", this.switchOn);
           void this.setOn(switchAccessory);
@@ -154,7 +169,9 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'minDelayPercentage',
       value: this.minDelayPercentage,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       this.values.minDelay = (this.values.delay * value) / 100;
+      return value;
     });
 
     this.addCharacteristicDelegate({
@@ -162,6 +179,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayDays',
       value: this.delayTime.days,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       this.delayTime = this.delayTime.with({ days: value });
       this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -172,6 +190,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayHours',
       value: this.delayTime.hours,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       this.delayTime = this.delayTime.with({ hours: value });
       this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -182,6 +201,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delayMinutes',
       value: this.delayTime.minutes,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       this.delayTime = this.delayTime.with({ minutes: value });
       this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -192,6 +212,7 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'delaySeconds',
       value: this.delayTime.seconds,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       this.delayTime = this.delayTime.with({ seconds: value });
       this.values.delay = toSeconds(this.delayTime);
       this.values.minDelay = (this.values.delay * this.values.minDelayPercentage) / 100;
@@ -226,10 +247,12 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       key: 'repeats',
       props: {
         minValue: 0,
-        maxValue: 10,
+        maxValue: 20,
+        minStep: 1,
       },
       value: this.repeats,
     }).on('didSet', (value: number) => {
+      this.muteDelaySwitch = true;
       if (value === -1) {
         void (async () => {
           this.values.infiniteRepeats = true;
@@ -256,9 +279,9 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       Characteristic: this.rds.Characteristics.Repetition,
       key: 'repetition',
       props: {
-        format: this.rds.Formats.UINT32,
+        format: this.rds.Formats.UINT8,
         minValue: 0,
-        maxValue: 65535,
+        maxValue: 20,
       },
       silent: true,
     });
@@ -312,6 +335,10 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.log('Restoring values from config file');
       this.setConfigValues();
     }
+
+    this.debug('Switch state: %s', this.values.on ? 'on' : 'off');
+    this.debug('Delay:', this.values.delay);
+    this.debug('Delay time:', this.delayTime.toLocaleString());
 
     // Start cron jobs, if defined
     this.startCronJobs();
@@ -540,11 +567,11 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
         this.log('The current timer was stopped', message);
       } else {
         this.warn('The timer was aborted! %s', message);
+        this.values.repetition = 0;
+        this.timerActive = false;
+        this.values.delayEnd = 'Not set';
+        this.values.timestamp = 0;
       }
-      this.values.repetition = 0;
-      this.timerActive = false;
-      this.values.delayEnd = 'Not set';
-      this.values.timestamp = 0;
     }
   }
 }

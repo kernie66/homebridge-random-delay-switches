@@ -106,7 +106,15 @@ export default class RdsAccessory extends AccessoryDelegate<RdsPlatform, RdsAcce
   }
 
   async heartbeat(beat: number) {
+    if (this.switchService.muteDelaySwitch) {
+      this.switchService.muteDelaySwitch = false;
+    }
+
     if (beat % this.switchService.values.heartrate === 0) {
+      this.debug('Switch value on: %s', this.switchService.values.on);
+      this.debug('Switch value switchOn: %s', this.switchService.switchOn);
+      this.debug('Switch value timerActive: %s', this.switchService.timerActive);
+      this.debug('Switch value delayTime: %s', this.switchService.delayTime.toLocaleString());
       if (this.switchService.values.timestamp > 0 && this.switchService.switchOn) {
         //   this.switchService.timeLeft = this.switchService.values.timestamp - getTimestamp();
         //   this.switchService.values.timeLeft = setTimeString(this.switchService.timeLeft);

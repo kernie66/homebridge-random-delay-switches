@@ -9,8 +9,8 @@ import { ServiceDelegate } from 'homebridge-lib/ServiceDelegate';
 
 import type RdsAccessory from './RdsAccessory.js';
 import type RdsTypes from './RdsTypes.js';
-import type { SwitchServiceParams } from './typings/SwitchTypes.js';
 
+import { maxDelayDuration, type SwitchServiceParams } from './typings/SwitchTypes.js';
 import { checkCronString, runCronJobs, setSchedule, stopCronJobs } from './utils/cronUtils.js';
 import getErrorMessage from './utils/getErrorMessage.js';
 import {
@@ -172,6 +172,16 @@ export default class SwitchService extends ServiceDelegate<RdsAccessory['platfor
       this.muteDelaySwitch = true;
       this.values.minDelay = (this.values.delay * value) / 100;
       return value;
+    });
+
+    this.addCharacteristicDelegate({
+      Characteristic: this.rds.Characteristics.DelayInput,
+      key: 'delayInput',
+      value: this.delay,
+    }).on('didSet', (value: string) => {
+      this.delayTime = toDuration(value, { maxDuration: maxDelayDuration, clampToMax: true });
+      this.values.delay = toSeconds(this.delayTime);
+      this.debug('DelayTime:', toHumanTime(this.delayTime));
     });
 
     this.addCharacteristicDelegate({

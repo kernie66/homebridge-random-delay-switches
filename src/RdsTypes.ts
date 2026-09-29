@@ -33,6 +33,7 @@ function uuid(id: string, suffix = '-0000-1000-8000-656261617577') {
 type RdsCharacteristics = {
   Delay: Characteristic;
   MinDelay: Characteristic;
+  DelayInput: Characteristic;
   TimeOut: Characteristic;
   TimeOutString: Characteristic;
   Repeats: Characteristic;
@@ -89,6 +90,16 @@ export default class RdsTypes extends CustomHomeKitTypes<RdsCharacteristics> {
         unit: this.Units.SECONDS,
       },
       'Delay time (minimum)',
+    );
+
+    this.createCharacteristicClass(
+      'DelayInput',
+      uuid('0A2'),
+      {
+        format: this.Formats.STRING,
+        perms: [this.Perms.PAIRED_WRITE, this.Perms.PAIRED_READ, this.Perms.NOTIFY],
+      },
+      'Delay time input',
     );
 
     this.createCharacteristicClass(
